@@ -2,3 +2,6 @@
 logs
 # Directory for quick scripts to try out new things
 sandbox
+
+__pycache__
+*.pyc
