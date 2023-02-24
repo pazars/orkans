@@ -29,7 +29,7 @@ def load_config(cfg_path: Path = None):
     # It does not replace .pystepsrc!
     if not cfg_path:
         script_dir = Path(".").resolve()
-        cfg_path = script_dir / "lvgmc-pysteps-config.yaml"
+        cfg_path = script_dir / "config.yaml"
 
     with open(cfg_path, "r") as file:
         return yaml.safe_load(file)

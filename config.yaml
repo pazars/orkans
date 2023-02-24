@@ -1,0 +1,59 @@
+general:
+  # Data source settings in pystepsrc configuration file
+  data_source: "opera"
+  # Data start time
+  start_time: 201808241900
+  # Pysteps assumes data is stored in a subdirectory of the data_source directory
+  # defined in .pystepsrc, and that this subdirectory is of the format start_fmt.
+  # If the data is directly in data_source directory, leave start_fmt as "".
+  start_fmt: "%Y%m%d%H%M"
+  # Nowcast model to use (model settings in model section)
+  model: steps
+  # Number of timesteps to use for velocity field estimation
+  n_flow_steps: 3
+  # Number of forecast timesteps
+  n_leadtimes: 6
+  # Clip domain to coordinates (local)
+  # To use whole domain, first entry should be null
+  domain_box:
+    - 2.52e6
+    - 3.114e6
+    - -2.067e6
+    - -1.37e6
+  # If verify is true, verifies forecasted steps with reference data
+  # Useful for model tuning
+  # This works only when working with past data
+  verify: true
+
+model:
+  # Default model optional parameter values (can be overwritten in code)
+  steps:
+    # https://pysteps.readthedocs.io/en/latest/generated/pysteps.nowcasts.steps.forecast.html
+    # Number of ensemble members
+    n_ens_members: 24
+    n_cascade_levels: 6
+    precip_thr: null
+    kmperpixel: null
+    timestep: null
+    extrap_method: "semilagrangian"
+    decomp_method: "fft"
+    bandpass_filter_method: "gaussian"
+    noise_method: "nonparametric"
+    noise_stddev_adj: null
+    ar_order: 2
+    vel_pert_method: "bps"
+    conditional: false
+    probmatching_method: "cdf"
+    mask_method: "incremental"
+    seed: null
+    num_workers: 1
+    fft_method: "numpy"
+    domain: "spatial"
+    extrap_kwargs: null
+    filter_kwargs: null
+    noise_kwargs: null
+    vel_pert_kwargs: null
+    mask_kwargs: null
+    measure_time: false
+    callback: null
+    return_output: true
