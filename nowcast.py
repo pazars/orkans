@@ -297,12 +297,14 @@ def run():
     pre_processor.add_data(raw_rainrate, raw_metadata)
 
     # Perform nowcast only if more than a certain threshold of cells have precipitation
-    ratio = pre_processor.precipitation_ratio()
+    ratio = pre_processor.precipitation_ratio(-1)
     if ratio < _PRECIP_RATIO_THR:
         msg = f"Precipitation ratio below threshold ({ratio} < {_PRECIP_RATIO_THR})."
         logger.warning(msg)
         logger.info("Run finished.")
         return
+
+    out_data = pre_processor.collect_info()
 
     # Number of timesteps to use for velocity field estimation
     n_flow_steps = cfg["general"]["n_flow_steps"]
