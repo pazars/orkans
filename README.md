@@ -1,2 +1,2 @@
 # orkans
-Opera KompozītAttēlu NowcastingS
+Opera Radaru KompozītAttēlu NowcastingS
