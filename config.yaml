@@ -65,3 +65,17 @@ model:
       precip_thr: threshold
       kmperpixel: xpixelsize
       timestep: accutime
+  anvil:
+    manual:
+      rainrate: null
+      n_cascade_levels: 8
+      extrap_method: semilagrangian
+      ar_order: 2
+      ar_window_radius: 50
+      r_vil_window_radius: 3
+      fft_method: numpy
+      apply_rainrate_mask: true
+      num_workers: 1
+      extrap_kwargs: null
+      filter_kwargs: null
+      measure_time: false # own measurement exists

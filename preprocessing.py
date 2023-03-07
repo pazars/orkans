@@ -79,7 +79,7 @@ class PreProcessor:
         datetime_obj = self.metadata["timestamps"][tstep_idx]
 
         # Observation date
-        info["date"] = datetime.strftime(datetime_obj, "%Y%m%d%H%M")
+        info["data_date"] = datetime.strftime(datetime_obj, "%Y%m%d%H%M")
 
         # Maximum precipitation rate
         info["max_rrate"] = data.max()

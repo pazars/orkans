@@ -1,5 +1,7 @@
 import datetime
+import hashlib
 import yaml
+import time
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -274,7 +276,11 @@ def apply_transformation(rrate, mdata, tfunc, arg=None):
 
 
 @logger.catch
-def run():
+def run(model_name: str):
+
+    tstart = time.perf_counter()
+
+    out_data = {}
 
     logger.add(
         _LOG_PATH,
@@ -306,11 +312,29 @@ def run():
         msg = f"Precipitation ratio below threshold ({ratio} < {_PRECIP_RATIO_THR})."
         logger.warning(msg)
         logger.info("Run finished.")
-        return
+        return out_data
 
-    out_data = pre_processor.collect_info()
+    prepro_data = pre_processor.collect_info()
 
-    logger.info(out_data)
+    # Get default nowcast model parameters from configuration file
+    model_kwargs = cfg["model"][model_name]["manual"]
+
+    # Update parameters available in metadata, if applicable
+    if "metadata" in cfg["model"][model_name]:
+        for key, mdkey in cfg["model"][model_name]["metadata"].items():
+            model_kwargs[key] = raw_metadata[mdkey]
+
+    # Generate run ID based on input data and model parameters
+    m = hashlib.md5()
+    m.update(str(prepro_data | model_kwargs).encode())
+    run_id = m.hexdigest()[0:12]
+
+    out_data = {"id": run_id, "model": model_name}
+    out_data |= prepro_data
+
+    logger.info(f"Run ID: {run_id}")
+
+    # PROCESSING
 
     # Number of timesteps to use for velocity field estimation
     n_flow_steps = cfg["general"]["n_flow_steps"]
@@ -324,6 +348,9 @@ def run():
     best_tfunc, Lambda = find_best_transformation(raw_rainrate, raw_metadata, verbose=verbose)
     rainrate, metadata = apply_transformation(raw_rainrate, raw_metadata, best_tfunc, Lambda)
 
+    out_data["transform"] = best_tfunc.__name__
+    out_data["boxcox_lambda"] = Lambda
+
     # Check that the grid is equally spaced
     assert metadata["xpixelsize"] == metadata["ypixelsize"]
 
@@ -334,38 +361,46 @@ def run():
     # Estimate the motion field
     vfield = dense_lucaskanade(rainrate[:n_flow_steps, :, :])
 
-    # Run nowcasts
-    nowcast_runs = {}
+    # Run nowcast
     n_leadtimes = cfg["general"]["n_leadtimes"]
 
-    for model_name in cfg["model"]:
-        model_func = nowcasts.get_method(model_name)
+    model_func = nowcasts.get_method(model_name)
 
-        model_kwargs = cfg["model"][model_name]["manual"]
+    tstart_nwc = time.perf_counter()
+    nwc = model_func(rainrate, vfield, n_leadtimes, **model_kwargs)
+    tend_nwc = time.perf_counter()
 
-        for key, mdkey in cfg["model"][model_name]["metadata"].items():
-            model_kwargs[key] = metadata[mdkey]
+    # POST-PROCESSING
 
-        nwc = model_func(rainrate, vfield, n_leadtimes, **model_kwargs)
+    out_data |= model_kwargs
 
-        logger.info(f"Ran '{model_name}' model")
-        logger.info(f"Model settings used: {str(model_kwargs)}")
+    out_data["nwc_run_time"] = tend_nwc - tstart_nwc
 
-        out_data["model"] = model_name
-        out_data |= model_kwargs
+    logger.info(f"Ran '{model_name}' model")
+    logger.info(f"Model settings used: {str(model_kwargs)}")
+    logger.info("Run finished.")
 
-        nowcast_runs[model_name] = {"result": nwc, "settings": model_kwargs}
+    tend = time.perf_counter()
+    out_data["total_run_time"] = tend - tstart
 
-    new_data = pd.DataFrame.from_dict([out_data])
-
-    # Output run results
-    if _OUT_PATH.exists():
-        old_data = pd.read_csv(_OUT_PATH)
-        new_data = pd.concat([old_data, new_data])
-
-    new_data.to_csv(_OUT_PATH)
+    return out_data
 
 
 if __name__ == "__main__":
 
-    run()
+    if _OUT_PATH.exists():
+        old_data = pd.read_csv(_OUT_PATH)
+    else:
+        old_data = pd.DataFrame()
+
+    for mname in ["steps", "anvil"]:
+
+        out_data = run(mname)
+
+        new_data = pd.DataFrame.from_dict([out_data])
+
+        # Output run results
+        combi_data = pd.concat([old_data, new_data])
+
+        # Index set to True leads to a redundant column at next read
+        combi_data.to_csv(_OUT_PATH, index=False)
