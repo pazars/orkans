@@ -5,3 +5,5 @@ sandbox
 
 __pycache__
 *.pyc
+
+nowcasts.csv

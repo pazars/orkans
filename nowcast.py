@@ -3,6 +3,7 @@ import yaml
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 from datetime import datetime
 from pathlib import Path
@@ -17,7 +18,10 @@ from pysteps.motion.lucaskanade import dense_lucaskanade
 from preprocessing import PreProcessor
 
 # Log file path for loguru
-_LOG_PATH = (Path(".") / "logs" / "log_{time}.txt").resolve()
+_LOG_PATH = (Path(".") / "logs" / "log.txt").resolve()
+
+# Result path
+_OUT_PATH = (Path(".") / "nowcasts.csv").resolve()
 
 # Precipitation ratio threshold
 _PRECIP_RATIO_THR = 0.25
@@ -306,6 +310,8 @@ def run():
 
     out_data = pre_processor.collect_info()
 
+    logger.info(out_data)
+
     # Number of timesteps to use for velocity field estimation
     n_flow_steps = cfg["general"]["n_flow_steps"]
 
@@ -318,6 +324,9 @@ def run():
     best_tfunc, Lambda = find_best_transformation(raw_rainrate, raw_metadata, verbose=verbose)
     rainrate, metadata = apply_transformation(raw_rainrate, raw_metadata, best_tfunc, Lambda)
 
+    # Check that the grid is equally spaced
+    assert metadata["xpixelsize"] == metadata["ypixelsize"]
+
     if plot:
         compare_transformations(raw_rainrate, raw_metadata)
         plt.show()
@@ -325,14 +334,36 @@ def run():
     # Estimate the motion field
     vfield = dense_lucaskanade(rainrate[:n_flow_steps, :, :])
 
-    # Run nowcast
+    # Run nowcasts
+    nowcast_runs = {}
     n_leadtimes = cfg["general"]["n_leadtimes"]
-    model_names = ["steps"]
-    for model_name in model_names:
+
+    for model_name in cfg["model"]:
         model_func = nowcasts.get_method(model_name)
-        model_kwargs = cfg["model"][model_name]
-        model_kwargs["precip_thr"] = 2
-        rainrate_forecast = model_func(rainrate, vfield, n_leadtimes, **model_kwargs)
+
+        model_kwargs = cfg["model"][model_name]["manual"]
+
+        for key, mdkey in cfg["model"][model_name]["metadata"].items():
+            model_kwargs[key] = metadata[mdkey]
+
+        nwc = model_func(rainrate, vfield, n_leadtimes, **model_kwargs)
+
+        logger.info(f"Ran '{model_name}' model")
+        logger.info(f"Model settings used: {str(model_kwargs)}")
+
+        out_data["model"] = model_name
+        out_data |= model_kwargs
+
+        nowcast_runs[model_name] = {"result": nwc, "settings": model_kwargs}
+
+    new_data = pd.DataFrame.from_dict([out_data])
+
+    # Output run results
+    if _OUT_PATH.exists():
+        old_data = pd.read_csv(_OUT_PATH)
+        new_data = pd.concat([old_data, new_data])
+
+    new_data.to_csv(_OUT_PATH)
 
 
 if __name__ == "__main__":

@@ -28,32 +28,40 @@ general:
 model:
   # Default model optional parameter values (can be overwritten in code)
   steps:
-    # https://pysteps.readthedocs.io/en/latest/generated/pysteps.nowcasts.steps.forecast.html
-    # Number of ensemble members
-    n_ens_members: 24
-    n_cascade_levels: 6
-    precip_thr: null
-    kmperpixel: null
-    timestep: null
-    extrap_method: "semilagrangian"
-    decomp_method: "fft"
-    bandpass_filter_method: "gaussian"
-    noise_method: "nonparametric"
-    noise_stddev_adj: null
-    ar_order: 2
-    vel_pert_method: "bps"
-    conditional: false
-    probmatching_method: "cdf"
-    mask_method: "incremental"
-    seed: null
-    num_workers: 1
-    fft_method: "numpy"
-    domain: "spatial"
-    extrap_kwargs: null
-    filter_kwargs: null
-    noise_kwargs: null
-    vel_pert_kwargs: null
-    mask_kwargs: null
-    measure_time: false
-    callback: null
-    return_output: true
+    manual:
+      # https://pysteps.readthedocs.io/en/latest/generated/pysteps.nowcasts.steps.forecast.html
+      # Number of ensemble members
+      n_ens_members: 24
+      n_cascade_levels: 6
+      precip_thr: null
+      kmperpixel: null
+      timestep: null
+      extrap_method: "semilagrangian"
+      decomp_method: "fft"
+      bandpass_filter_method: "gaussian"
+      noise_method: "nonparametric"
+      noise_stddev_adj: null
+      ar_order: 2
+      vel_pert_method: "bps"
+      conditional: false
+      probmatching_method: "cdf"
+      mask_method: "incremental"
+      seed: null
+      num_workers: 1
+      fft_method: "numpy"
+      domain: "spatial"
+      extrap_kwargs: null
+      filter_kwargs: null
+      noise_kwargs: null
+      vel_pert_kwargs: null
+      mask_kwargs: null
+      measure_time: false
+      callback: null
+      return_output: true
+    metadata:
+      # Model parameters that can be automatically read from the metadata
+      # Value in this list is the metadata key
+      # Overwrites default values in manual
+      precip_thr: threshold
+      kmperpixel: xpixelsize
+      timestep: accutime
