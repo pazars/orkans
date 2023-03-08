@@ -331,9 +331,13 @@ def run(model_name: str):
         for key, mdkey in cfg["model"][model_name]["metadata"].items():
             model_kwargs[key] = metadata_no_transform[mdkey]
 
+    # Parameters from which run ID is generated
+    id_params = {"data_date": prepro_data["data_date"], "model": model_name}
+    id_params |= model_kwargs
+
     # Generate run ID based on input data and model parameters
     m = hashlib.md5()
-    m.update(str(prepro_data | model_kwargs).encode())
+    m.update(str(id_params).encode())
     run_id = m.hexdigest()[0:12]
 
     out_data = {"id": run_id, "model": model_name}
@@ -414,6 +418,7 @@ def run(model_name: str):
     tend_nwc = time.perf_counter()
 
     # POST-PROCESSING
+    # TODO: Implement basic post-processing
 
     out_data |= model_kwargs
 
@@ -452,5 +457,5 @@ if __name__ == "__main__":
         # Output run results
         data = pd.concat([data, new_data])
 
-    # Index set to True leads to a redundant column at next read
-    data.to_csv(_OUT_PATH, index=False)
+        # Index set to True leads to a redundant column at next read
+        data.to_csv(_OUT_PATH, index=False)
