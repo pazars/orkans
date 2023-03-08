@@ -313,14 +313,6 @@ def run(model_name: str):
     pre_processor = PreProcessor()
     pre_processor.add_data(rainrate_no_transform, metadata_no_transform)
 
-    # Perform nowcast only if more than a certain threshold of cells have precipitation
-    ratio = pre_processor.precipitation_ratio(-1)
-    if ratio < _PRECIP_RATIO_THR:
-        msg = f"Precipitation ratio below threshold ({ratio} < {_PRECIP_RATIO_THR})."
-        logger.warning(msg)
-        logger.info("Run finished.")
-        return out_data
-
     prepro_data = pre_processor.collect_info()
 
     # Get default nowcast model parameters from configuration file
@@ -341,6 +333,17 @@ def run(model_name: str):
     run_id = m.hexdigest()[0:12]
 
     out_data = {"id": run_id, "model": model_name}
+
+    # Perform nowcast only if more than a certain threshold of cells have precipitation
+    ratio = pre_processor.precipitation_ratio(-1)
+    out_data["precip_ratio"] = ratio
+
+    if ratio < _PRECIP_RATIO_THR:
+        msg = f"Precipitation ratio below threshold ({ratio} < {_PRECIP_RATIO_THR})."
+        logger.warning(msg)
+        logger.info("Run finished.")
+        return out_data
+
     out_data |= prepro_data
 
     logger.info(f"Run ID: {run_id}")
