@@ -41,7 +41,7 @@ def load_config(cfg_path: Path = None):
         return yaml.safe_load(file)
 
 
-def load_rainrate_data(cfg: dict):
+def load_rainrate_data(cfg: dict, n_vsteps: int):
 
     gen_cfg = cfg["general"]
 
@@ -58,7 +58,6 @@ def load_rainrate_data(cfg: dict):
     importer_name = rcparams.data_sources[data_source]["importer"]
     importer_kwargs = rcparams.data_sources[data_source]["importer_kwargs"]
     timestep = rcparams.data_sources[data_source]["timestep"]
-    n_flow_steps = gen_cfg["n_flow_steps"]
 
     n_leadtimes = 0
     # Load forecast reference data (reanalysis)
@@ -73,7 +72,7 @@ def load_rainrate_data(cfg: dict):
         fn_pattern,
         fn_ext,
         timestep,
-        num_prev_files=n_flow_steps - 1,
+        num_prev_files=n_vsteps - 1,
         num_next_files=n_leadtimes,
     )
 
@@ -84,6 +83,9 @@ def load_rainrate_data(cfg: dict):
 
     # Data should already be in mm/h, but convert just in case it isn't
     rainrate, metadata = conversion.to_rainrate(data, metadata)
+
+    # Fill missing values with no precipitation value
+    rainrate[~np.isfinite(rainrate)] = metadata["zerovalue"]
 
     # Clip domain to a specific region
     # If first entry is None, uses whole domain
@@ -275,6 +277,17 @@ def apply_transformation(rrate, mdata, tfunc, arg=None):
     return tfunc(rrate, mdata)
 
 
+def determine_velocity_step_count(model_name: str, cfg: dict):
+    if model_name == "linda":
+        order = cfg["model"][model_name]["manual"]["ari_order"]
+    else:
+        order = cfg["model"][model_name]["manual"]["ar_order"]
+
+    if model_name in ["linda", "anvil"]:
+        return order + 2
+    return order + 1  # steps, sseps
+
+
 @logger.catch
 def run(model_name: str):
 
@@ -282,29 +295,23 @@ def run(model_name: str):
 
     out_data = {}
 
-    logger.add(
-        _LOG_PATH,
-        backtrace=True,
-        diagnose=True,
-        rotation="1 day",
-        retention="1 week",
-    )
-
     logger.info("Run started.")
 
     plot = False
-    verbose = False
 
     # Load configuration file
     cfg = load_config()
 
+    # Number of timesteps to use for velocity field estimation
+    n_vsteps = determine_velocity_step_count(model_name, cfg)
+
     # Load rain rate data
-    raw_rainrate, raw_metadata = load_rainrate_data(cfg)
+    rainrate_no_transform, metadata_no_transform = load_rainrate_data(cfg, n_vsteps)
 
     # PRE-PROCESSING
 
     pre_processor = PreProcessor()
-    pre_processor.add_data(raw_rainrate, raw_metadata)
+    pre_processor.add_data(rainrate_no_transform, metadata_no_transform)
 
     # Perform nowcast only if more than a certain threshold of cells have precipitation
     ratio = pre_processor.precipitation_ratio(-1)
@@ -322,7 +329,7 @@ def run(model_name: str):
     # Update parameters available in metadata, if applicable
     if "metadata" in cfg["model"][model_name]:
         for key, mdkey in cfg["model"][model_name]["metadata"].items():
-            model_kwargs[key] = raw_metadata[mdkey]
+            model_kwargs[key] = metadata_no_transform[mdkey]
 
     # Generate run ID based on input data and model parameters
     m = hashlib.md5()
@@ -336,30 +343,38 @@ def run(model_name: str):
 
     # PROCESSING
 
-    # Number of timesteps to use for velocity field estimation
-    n_flow_steps = cfg["general"]["n_flow_steps"]
-
     if plot:
         # Plot the rainfall field
-        plot_precip_field(raw_rainrate[n_flow_steps - 1, :, :], geodata=raw_metadata)
+        plot_precip_field(rainrate_no_transform[n_vsteps - 1, :, :], geodata=metadata_no_transform)
         plt.show()
 
     # Automatically transform data using most appropriate transformation
-    best_tfunc, Lambda = find_best_transformation(raw_rainrate, raw_metadata, verbose=verbose)
-    rainrate, metadata = apply_transformation(raw_rainrate, raw_metadata, best_tfunc, Lambda)
+    best_tfunc, Lambda = find_best_transformation(rainrate_no_transform, metadata_no_transform)
+    rainrate_transform, metadata_transform = apply_transformation(
+        rainrate_no_transform,
+        metadata_no_transform,
+        best_tfunc,
+        Lambda,
+    )
 
     out_data["transform"] = best_tfunc.__name__
     out_data["boxcox_lambda"] = Lambda
 
     # Check that the grid is equally spaced
-    assert metadata["xpixelsize"] == metadata["ypixelsize"]
+    assert metadata_transform["xpixelsize"] == metadata_transform["ypixelsize"]
 
     if plot:
-        compare_transformations(raw_rainrate, raw_metadata)
+        compare_transformations(rainrate_no_transform, metadata_no_transform)
         plt.show()
 
     # Estimate the motion field
-    vfield = dense_lucaskanade(rainrate[:n_flow_steps, :, :])
+
+    rainrate_train_transform = rainrate_transform[:n_vsteps, :, :]
+    rainrate_train_no_transform = rainrate_no_transform[:n_vsteps, :, :]
+    rainrate_valid = rainrate_no_transform[n_vsteps:, :, :]
+
+    # Rain rate with an adjusted (transformed) distribution used for estimating velocity field
+    vfield = dense_lucaskanade(rainrate_train_transform)
 
     # Run nowcast
     n_leadtimes = cfg["general"]["n_leadtimes"]
@@ -367,7 +382,35 @@ def run(model_name: str):
     model_func = nowcasts.get_method(model_name)
 
     tstart_nwc = time.perf_counter()
-    nwc = model_func(rainrate, vfield, n_leadtimes, **model_kwargs)
+
+    if model_name in ["linda", "anvil"]:
+        nwc = model_func(
+            rainrate_train_no_transform,
+            vfield,
+            n_leadtimes,
+            **model_kwargs,
+        )
+
+    elif model_name == "sseps":
+        nwc = model_func(
+            rainrate_train_transform,
+            metadata_no_transform,
+            vfield,
+            n_leadtimes,
+            **model_kwargs,
+        )
+
+    elif model_name == "steps":
+        nwc = model_func(
+            rainrate_train_transform,
+            vfield,
+            n_leadtimes,
+            **model_kwargs,
+        )
+
+    else:
+        raise NotImplementedError(model_name)
+
     tend_nwc = time.perf_counter()
 
     # POST-PROCESSING
@@ -388,19 +431,26 @@ def run(model_name: str):
 
 if __name__ == "__main__":
 
+    logger.add(
+        _LOG_PATH,
+        backtrace=True,
+        diagnose=True,
+        rotation="1 day",
+        retention="1 week",
+    )
+
     if _OUT_PATH.exists():
-        old_data = pd.read_csv(_OUT_PATH)
+        data = pd.read_csv(_OUT_PATH)
     else:
-        old_data = pd.DataFrame()
+        data = pd.DataFrame()
 
-    for mname in ["steps", "anvil"]:
-
+    for mname in ["steps", "sseps", "anvil", "linda"]:
         out_data = run(mname)
 
         new_data = pd.DataFrame.from_dict([out_data])
 
         # Output run results
-        combi_data = pd.concat([old_data, new_data])
+        data = pd.concat([data, new_data])
 
-        # Index set to True leads to a redundant column at next read
-        combi_data.to_csv(_OUT_PATH, index=False)
+    # Index set to True leads to a redundant column at next read
+    data.to_csv(_OUT_PATH, index=False)

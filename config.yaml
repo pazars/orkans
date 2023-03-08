@@ -66,6 +66,7 @@ model:
       kmperpixel: xpixelsize
       timestep: accutime
   anvil:
+    # https://pysteps.readthedocs.io/en/latest/generated/pysteps.nowcasts.steps.forecast.html
     manual:
       rainrate: null
       n_cascade_levels: 8
@@ -79,3 +80,63 @@ model:
       extrap_kwargs: null
       filter_kwargs: null
       measure_time: false # own measurement exists
+  linda:
+    # https://pysteps.readthedocs.io/en/latest/generated/pysteps.nowcasts.linda.forecast.html
+    manual:
+      feature_method: blob
+      max_num_features: 15
+      feature_kwargs: null
+      ari_order: 1
+      kernel_type: anisotropic
+      localization_window_radius: null
+      errdist_window_radius: null
+      acf_window_radius: null
+      extrap_method: semilagrangian
+      extrap_kwargs: null
+      add_perturbations: False
+      pert_thrs:
+        - 0.5
+        - 1.0
+      n_ens_members: 10
+      vel_pert_method: bps
+      vel_pert_kwargs: null
+      kmperpixel: null
+      timestep: null
+      seed: null
+      num_workers: 1
+      use_multiprocessing: False
+      measure_time: False
+      callback: null
+      return_output: True
+    metadata:
+      # Model parameters that can be automatically read from the metadata
+      # Value in this list is the metadata key
+      # Overwrites default values in manual
+      kmperpixel: xpixelsize
+      timestep: accutime
+  sseps:
+    manual:
+      n_ens_members: 24
+      n_cascade_levels: 6
+      win_size: 256
+      overlap: 0.1
+      war_thr: 0.1
+      extrap_method: semilagrangian
+      decomp_method: fft
+      bandpass_filter_method: gaussian
+      noise_method: ssft
+      ar_order: 2
+      vel_pert_method: null
+      probmatching_method: cdf
+      mask_method: incremental
+      callback: null
+      fft_method: numpy
+      return_output: True
+      seed: null
+      num_workers: 1
+      extrap_kwargs: null
+      filter_kwargs: null
+      noise_kwargs: null
+      vel_pert_kwargs: null
+      mask_kwargs: null
+      measure_time: False
