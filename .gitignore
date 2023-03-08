@@ -3,7 +3,10 @@ logs
 # Directory for quick scripts to try out new things
 sandbox
 
+# Python cache files and directory
 __pycache__
 *.pyc
 
+# Result files
 nowcasts.csv
+nowcasts_*.csv

@@ -23,7 +23,7 @@ from preprocessing import PreProcessor
 _LOG_PATH = (Path(".") / "logs" / "log.txt").resolve()
 
 # Result path
-_OUT_PATH = (Path(".") / "nowcasts.csv").resolve()
+_OUT_DIR = Path(".").resolve()
 
 # Precipitation ratio threshold
 _PRECIP_RATIO_THR = 0.25
@@ -332,7 +332,7 @@ def run(model_name: str):
     m.update(str(id_params).encode())
     run_id = m.hexdigest()[0:12]
 
-    out_data = {"id": run_id, "model": model_name}
+    out_data = {"id": run_id}
 
     # Perform nowcast only if more than a certain threshold of cells have precipitation
     ratio = pre_processor.precipitation_ratio(-1)
@@ -447,18 +447,22 @@ if __name__ == "__main__":
         retention="1 week",
     )
 
-    if _OUT_PATH.exists():
-        data = pd.read_csv(_OUT_PATH)
+    model_name = "sseps"  # steps, sseps, anvil, linda
+
+    fname = f"nowcasts_{model_name}.csv"
+    out_path = _OUT_DIR / fname
+
+    if out_path.exists():
+        data = pd.read_csv(out_path)
     else:
         data = pd.DataFrame()
 
-    for mname in ["steps", "sseps", "anvil", "linda"]:
-        out_data = run(mname)
+    out_data = run(model_name)
 
-        new_data = pd.DataFrame.from_dict([out_data])
+    new_data = pd.DataFrame.from_dict([out_data])
 
-        # Output run results
-        data = pd.concat([data, new_data])
+    # Output run results
+    data = pd.concat([data, new_data])
 
-        # Index set to True leads to a redundant column at next read
-        data.to_csv(_OUT_PATH, index=False)
+    # Index set to True leads to a redundant column at next read
+    data.to_csv(out_path, index=False)
