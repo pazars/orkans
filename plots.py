@@ -11,8 +11,8 @@ from pysteps.utils import transformation
 try:
     from orkans.preprocessing import find_best_boxcox_lambda
 except ModuleNotFoundError:
-    LIB_SRC_DIR = Path("C:/Users/davis.pazars/Documents").as_posix()
-    sys.path.append(LIB_SRC_DIR)
+    LIB_DIR = (Path(".") / "..").resolve().as_posix()
+    sys.path.append(LIB_DIR)
 finally:
     from orkans.preprocessing import find_best_boxcox_lambda
 
