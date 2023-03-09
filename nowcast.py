@@ -187,3 +187,5 @@ if __name__ == "__main__":
 
     # Index set to True leads to a redundant column at next read
     data.to_csv(out_path, index=False)
+
+    print("Testing")
