@@ -1,12 +1,13 @@
 # Log files
 logs
-# Directory for quick scripts to try out new things
+# Experiment directory
 sandbox
 
 # Python cache files and directory
 __pycache__
 *.pyc
 
-# Result files
+# Results
+results
 nowcasts.csv
 nowcasts_*.csv
