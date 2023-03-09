@@ -14,7 +14,7 @@ from pysteps.motion.lucaskanade import dense_lucaskanade
 try:
     from orkans import utils, plots
 except ModuleNotFoundError:
-    LIB_DIR = Path("C:/Users/davis.pazars/Documents").as_posix()
+    LIB_DIR = (Path(".") / "..").resolve().as_posix()
     sys.path.append(LIB_DIR)
 finally:
     from orkans import utils, plots

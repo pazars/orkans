@@ -204,9 +204,6 @@ def find_best_boxcox_lambda(
     Returns:
         float: Best lambda parameter
     """
-
-    data = []
-    labels = []
     skw = []
 
     # Keep only positive rainfall values
@@ -215,11 +212,9 @@ def find_best_boxcox_lambda(
     # Test a range of values for the transformation parameter Lambda
     lambdas = np.linspace(-0.4, 0.4, 11)
     for Lambda in lambdas:
-        R_, _ = transformation.boxcox_transform(data_flat, mdata, Lambda)
-        R_ = (R_ - np.mean(R_)) / np.std(R_)
-        data.append(R_)
-        labels.append("{0:.2f}".format(Lambda))
-        skw.append(stats.skew(R_))  # skewness
+        data_trnsfmd, _ = transformation.boxcox_transform(data_flat, mdata, Lambda)
+        data_trnsfmd = (data_trnsfmd - np.mean(data_trnsfmd)) / np.std(data_trnsfmd)
+        skw.append(stats.skew(data_trnsfmd))  # skewness
 
     # Best lambda
     idx_best = np.argmin(np.abs(skw))
