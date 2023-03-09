@@ -191,7 +191,9 @@ class PreProcessor:
         return tfunc(self.data, self.metadata)
 
 
-def find_best_boxcox_lambda(data: np.ndarray, mdata: dict, verbose: bool = False) -> float:
+def find_best_boxcox_lambda(
+    data: np.ndarray, mdata: dict, verbose: bool = False
+) -> float:
     """Find best lambda parameter for Box-Cox transformation function.
 
     Args:

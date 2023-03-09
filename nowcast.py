@@ -38,7 +38,9 @@ def run(model_name: str):
     n_vsteps = utils.determine_velocity_step_count(model_name, cfg)
 
     # Load rain rate data
-    rainrate_no_transform, metadata_no_transform = utils.load_rainrate_data(cfg, n_vsteps)
+    rainrate_no_transform, metadata_no_transform = utils.load_rainrate_data(
+        cfg, n_vsteps
+    )
 
     # PRE-PROCESSING
 
@@ -46,7 +48,9 @@ def run(model_name: str):
 
     prepro_data = pre_processor.collect_info()
 
-    model_kwargs = utils.load_model_kwargs_from_config(model_name, cfg, metadata_no_transform)
+    model_kwargs = utils.load_model_kwargs_from_config(
+        model_name, cfg, metadata_no_transform
+    )
 
     run_id = utils.generate_run_id(prepro_data, model_name, model_kwargs)
 
@@ -72,7 +76,9 @@ def run(model_name: str):
     # PROCESSING
 
     # Save rainfall field plot
-    plot_precip_field(rainrate_no_transform[n_vsteps - 1, :, :], geodata=metadata_no_transform)
+    plot_precip_field(
+        rainrate_no_transform[n_vsteps - 1, :, :], geodata=metadata_no_transform
+    )
     plt.savefig(run_plot_dir / "last_obs_precip_field.svg", format="svg")
 
     # Automatically transform data using most appropriate transformation
