@@ -11,3 +11,6 @@ __pycache__
 results
 nowcasts.csv
 nowcasts_*.csv
+
+# Visual Studio code settings
+.vscode

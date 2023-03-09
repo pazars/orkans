@@ -94,7 +94,7 @@ class PreProcessor:
 
         return info
 
-    def find_best_transformation(self, verbose: bool = False) -> tuple[function, float | None]:
+    def find_best_transformation(self, verbose: bool = False) -> tuple:
         """Find most suitable data transformation function for velocity field estimation.
 
         Args:
@@ -170,7 +170,7 @@ class PreProcessor:
 
         return (best_func, extra_arg)
 
-    def apply_transformation(self, tfunc: function, arg: float = None) -> tuple[np.ndarray, dict]:
+    def apply_transformation(self, tfunc, arg: float = None) -> tuple[np.ndarray, dict]:
         """Apply transformation function to pysteps data.
 
         Function argument (lambda) only applicable for Box-Cox transform.
@@ -212,7 +212,7 @@ def find_best_boxcox_lambda(data: np.ndarray, mdata: dict, verbose: bool = False
 
     # Test a range of values for the transformation parameter Lambda
     lambdas = np.linspace(-0.4, 0.4, 11)
-    for i, Lambda in enumerate(lambdas):
+    for Lambda in lambdas:
         R_, _ = transformation.boxcox_transform(data_flat, mdata, Lambda)
         R_ = (R_ - np.mean(R_)) / np.std(R_)
         data.append(R_)

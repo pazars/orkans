@@ -1,10 +1,20 @@
+import sys
+from pathlib import Path
+
 import numpy as np
 
 import matplotlib.pyplot as plt
 
 from scipy import stats
 from pysteps.utils import transformation
-from preprocessing import find_best_boxcox_lambda
+
+try:
+    from orkans.preprocessing import find_best_boxcox_lambda
+except ModuleNotFoundError:
+    LIB_SRC_DIR = Path("C:/Users/davis.pazars/Documents").as_posix()
+    sys.path.append(LIB_SRC_DIR)
+finally:
+    from orkans.preprocessing import find_best_boxcox_lambda
 
 
 def _plot_distribution(data, labels, skw):
