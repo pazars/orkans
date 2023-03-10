@@ -12,7 +12,7 @@ general:
   # Number of timesteps to use for velocity field estimation
   n_flow_steps: 3
   # Number of forecast timesteps
-  n_leadtimes: 6
+  n_leadtimes: 3
   # Clip domain to coordinates (local)
   # To use whole domain, first entry should be null
   domain_box:
@@ -140,3 +140,18 @@ model:
       vel_pert_kwargs: null
       mask_kwargs: null
       measure_time: False
+
+metrics:
+  # https://pysteps.readthedocs.io/en/latest/generated/pysteps.verification.detcontscores.det_cont_fct.html#pysteps.verification.detcontscores.det_cont_fct
+  deterministic:
+    - MAE # Mean Absolute Error
+    - rmse # Root Mean Squared Error
+    - RV # Reduction of Variance (Brier Score)
+  # https://pysteps.readthedocs.io/en/latest/generated/pysteps.verification.interface.get_method.html#pysteps.verification.interface.get_method
+  ensemble:
+    mean:
+      - CSI # Critical Success Index
+      - MAE # Mean Absolute Error
+      - RMSE # Root Mean Squared Error
+      - RV # Reduction of Variance (Brier Score)
+    prob:

@@ -1,3 +1,7 @@
+from pathlib import Path
+
+from pysteps.verification import detcontscores, ensscores
+
 import os
 import sys
 import shutil
@@ -23,8 +27,73 @@ finally:
     from orkans import PLOT_DIR
 
 
+class PostProcessor:
+    """Class for nowcast skill evaluation."""
+
+    def __init__(self, rid, obs, pred, metadata) -> None:
+        self.obs = obs
+        self.pred = pred
+        self.metadata = metadata
+        self.is_ensemble = len(pred.shape) > 3
+
+        self.plots = PlotProcessor(rid, obs, pred, metadata)
+
+    def calc_scores(self, cfg: dict, lead_idx: int) -> dict:
+
+        if self.is_ensemble:
+            return self.calc_ens_scores(cfg, lead_idx)
+        else:
+            return self.calc_det_scores(cfg, lead_idx)
+
+    def calc_det_scores(self, cfg: dict, lead_idx: int, thr: float = None) -> dict:
+
+        if not thr:
+            thr = self.metadata["zerovalue"]
+
+        pred = self.pred[lead_idx, :, :]
+        obs = self.obs[lead_idx, :, :]
+
+        res = {"nwc_type": "deterministic"}
+        metrics = cfg["metrics"]["deterministic"]
+        score_map = detcontscores.det_cont_fct(pred, obs, metrics, thr=thr)
+
+        leadtime = self.plots._calculate_leadtime(lead_idx)
+        for metric, score in score_map.items():
+            new_metric_name = f"{metric}_T{int(leadtime)}"
+            res[new_metric_name] = score
+
+        return res
+
+    def calc_ens_scores(self, cfg: dict, lead_idx: int, thr: float = None) -> dict:
+
+        if not thr:
+            thr = self.metadata["zerovalue"]
+
+        pred = self.pred[:, lead_idx, :, :]
+        obs = self.obs[lead_idx, :, :]
+
+        res = {"nwc_type": "ensemble"}
+        metrics = cfg["metrics"]["ensemble"]["mean"]
+
+        leadtime = self.plots._calculate_leadtime(lead_idx)
+        for metric in metrics:
+            score = ensscores.ensemble_skill(pred, obs, metric, thr=thr)
+            new_metric_name = f"{metric}_T{int(leadtime)}"
+            res[new_metric_name] = score
+
+        return res
+
+    def save_plots(self, lead_idx: int = 0) -> None:
+        if self.is_ensemble:
+            self.plots.save_all_ensemble_plots(lead_idx)
+        else:
+            self.plots.save_all_deterministic_plots(lead_idx)
+
+
 class PlotProcessor:
-    """Class for saving plots."""
+    """Class for saving plots.
+    Intended for use in PostProcessor, but can be used on its own.
+    """
 
     def __init__(self, rid, ref_data, data, metadata) -> None:
         self.run_id = rid
@@ -42,8 +111,7 @@ class PlotProcessor:
 
         if plot_dir.exists():
             shutil.rmtree(plot_dir)
-        else:
-            plot_dir.mkdir(parents=True)
+        plot_dir.mkdir(parents=True)
 
         return plot_dir
 

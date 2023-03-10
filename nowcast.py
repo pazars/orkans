@@ -18,7 +18,7 @@ finally:
     from orkans import utils
     from orkans import OUT_DIR, LOG_PATH, PRECIP_RATIO_THR
     from orkans.preprocessing import PreProcessor
-    from orkans.plots import PlotProcessor
+    from orkans.postprocessing import PostProcessor
 
 
 @logger.catch
@@ -132,22 +132,19 @@ def run(model_name: str):
 
     tend_nwc = time.perf_counter()
 
+    out_data |= model_kwargs
+
     # POST-PROCESSING
     # TODO: Implement basic post-processing
 
     # All nowcasts should be in mm/h
     # If a model uses different units as input, convert before moving on!
 
-    plots = PlotProcessor(run_id, rainrate_no_transform, nwc, metadata_no_transform)
+    post_proc = PostProcessor(run_id, rainrate_no_transform, nwc, metadata_no_transform)
+    scores = post_proc.calc_scores(cfg, lead_idx=0)
+    out_data |= scores
 
-    if model_name in ["steps", "sseps"]:
-        plots.save_all_ensemble_plots(lead_idx=0)
-    elif model_name == "linda" and model_kwargs["add_perturbations"]:
-        plots.save_all_ensemble_plots(lead_idx=0)
-    else:
-        plots.save_all_deterministic_plots(lead_idx=0)
-
-    out_data |= model_kwargs
+    post_proc.save_plots()
 
     out_data["nwc_run_time"] = tend_nwc - tstart_nwc
 
