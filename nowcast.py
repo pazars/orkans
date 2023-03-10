@@ -135,7 +135,6 @@ def run(model_name: str):
     out_data |= model_kwargs
 
     # POST-PROCESSING
-    # TODO: Implement basic post-processing
 
     # All nowcasts should be in mm/h
     # If a model uses different units as input, convert before moving on!
@@ -168,7 +167,7 @@ if __name__ == "__main__":
         retention="1 week",
     )
 
-    model_name = "sseps"  # steps, sseps, anvil, linda
+    model_name = "anvil"  # steps, sseps, anvil, linda
 
     fname = f"nowcasts_{model_name}.csv"
 

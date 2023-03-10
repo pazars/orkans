@@ -51,18 +51,22 @@ class PreProcessor:
             return data[~np.isnan(data)]
         return data
 
-    def precipitation_ratio(self) -> float:
+    def precipitation_ratio(self, thr: float = None) -> float:
         """Calculate ratio of points with non-zero precipitation at last timestep.
 
         Args:
             idx (int): Data timestep index.
+            thr (float): Precipitation threshold
 
         Returns:
             float: Precipitation ratio (0-1).
         """
 
+        if not thr:
+            thr = self.metadata["threshold"]
+
         data = self._get_data_step(-1, True)
-        n_percip_pix = data[data > self.metadata["threshold"]].size
+        n_percip_pix = data[data > thr].size
         percip_ratio = n_percip_pix / data.size
         return percip_ratio
 
@@ -82,6 +86,9 @@ class PreProcessor:
         # Observation date
         info["data_date"] = datetime.strftime(datetime_obj, "%Y%m%d%H%M")
 
+        # Timestep
+        info["timestep"] = self.metadata["accutime"]
+
         # Maximum precipitation rate
         info["max_rrate"] = data.max()
 
@@ -89,8 +96,19 @@ class PreProcessor:
         data_above_thr = data[data > self.metadata["threshold"]]
         info["mean_rrate_above_thr"] = data_above_thr.mean()
 
+        pratio = self.precipitation_ratio()
+
         # Ratio of pixels with rain rate values
-        info["precip_ratio"] = self.precipitation_ratio()
+        # This compares with all pixels!
+        info["precip_ratio"] = pratio
+
+        thresholds = [2, 5, 8]
+        for thr in thresholds:
+            # Ratio of precipitation pixels above certain threshold
+            # This compares only with pixels with precipitation!
+            pratio_thr = self.precipitation_ratio(thr)
+            key_name = f"precip_above_{thr}mmh"
+            info[key_name] = pratio_thr / pratio
 
         return info
 
