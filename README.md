@@ -1,5 +1,5 @@
 # orkans
-[Pysteps](https://pysteps.readthedocs.io/en/latest/index.html) nowcast model run automation and result collection.
+[Pysteps](https://pysteps.readthedocs.io/en/latest/index.html) automation and result collection for model parameter tuning.
 
 ## Description
 
