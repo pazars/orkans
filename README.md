@@ -1,6 +1,5 @@
 # orkans
-[Pysteps](https://pysteps.readthedocs.io/en/latest/index.html) automation and result collection for model parameter tuning.
-
+Automate data collection for [pySTEPS](https://pysteps.readthedocs.io/en/latest/index.html) precipitation nowcasting model parameter tuning.
 ## Description
 
 [Pysteps](https://pysteps.readthedocs.io/en/latest/index.html) is a library for precipitation nowcasting. It contains multiple models and each model has several parameters that the user can change. Although each model works with the default parameters, it is not clear if the default parameters are optimal for different precipitation scenarios.
