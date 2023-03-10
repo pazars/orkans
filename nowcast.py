@@ -2,24 +2,23 @@ import time
 import sys
 import os
 
-import matplotlib.pyplot as plt
 import pandas as pd
 
 from pathlib import Path
 from loguru import logger
 from pysteps import nowcasts
-from pysteps.visualization import plot_precip_field
 from pysteps.motion.lucaskanade import dense_lucaskanade
 
 try:
-    from orkans import utils, plots
+    from orkans import utils
 except ModuleNotFoundError:
     LIB_DIR = (Path(".") / "..").resolve().as_posix()
     sys.path.append(LIB_DIR)
 finally:
-    from orkans import utils, plots
+    from orkans import utils
     from orkans import OUT_DIR, LOG_PATH, PRECIP_RATIO_THR
     from orkans.preprocessing import PreProcessor
+    from orkans.postprocessing import PostProcessor
 
 
 @logger.catch
@@ -54,9 +53,6 @@ def run(model_name: str):
 
     run_id = utils.generate_run_id(prepro_data, model_name, model_kwargs)
 
-    # Create directory where plots will be saved
-    run_plot_dir = utils.create_run_plot_dir(prepro_data["data_date"], run_id)
-
     out_data = {"id": run_id}
 
     # Perform nowcast only if more than a certain threshold of cells have precipitation
@@ -75,12 +71,6 @@ def run(model_name: str):
 
     # PROCESSING
 
-    # Save rainfall field plot
-    plot_precip_field(
-        rainrate_no_transform[n_vsteps - 1, :, :], geodata=metadata_no_transform
-    )
-    plt.savefig(run_plot_dir / "last_obs_precip_field.svg", format="svg")
-
     # Automatically transform data using most appropriate transformation
     best_tfunc, Lambda = pre_processor.find_best_transformation()
     rainrate_transform, metadata_transform = pre_processor.apply_transformation(
@@ -93,9 +83,6 @@ def run(model_name: str):
 
     # Check that the grid is equally spaced
     assert metadata_transform["xpixelsize"] == metadata_transform["ypixelsize"]
-
-    plots.compare_transformations(rainrate_no_transform, metadata_no_transform)
-    plt.savefig(run_plot_dir / "data_transform_comparison.svg", format="svg")
 
     # Estimate the motion field
 
@@ -124,11 +111,12 @@ def run(model_name: str):
     elif model_name == "sseps":
         nwc = model_func(
             rainrate_train_transform,
-            metadata_no_transform,
+            metadata_transform,
             vfield,
             n_leadtimes,
             **model_kwargs,
         )
+        nwc, metadata_nwc = utils.conversion.to_rainrate(nwc, metadata_transform)
 
     elif model_name == "steps":
         nwc = model_func(
@@ -137,16 +125,26 @@ def run(model_name: str):
             n_leadtimes,
             **model_kwargs,
         )
+        nwc, metadata_nwc = utils.conversion.to_rainrate(nwc, metadata_transform)
 
     else:
         raise NotImplementedError(model_name)
 
     tend_nwc = time.perf_counter()
 
+    out_data |= model_kwargs
+
     # POST-PROCESSING
     # TODO: Implement basic post-processing
 
-    out_data |= model_kwargs
+    # All nowcasts should be in mm/h
+    # If a model uses different units as input, convert before moving on!
+
+    post_proc = PostProcessor(run_id, rainrate_no_transform, nwc, metadata_no_transform)
+    scores = post_proc.calc_scores(cfg, lead_idx=0)
+    out_data |= scores
+
+    post_proc.save_plots()
 
     out_data["nwc_run_time"] = tend_nwc - tstart_nwc
 
@@ -185,6 +183,10 @@ if __name__ == "__main__":
         data = pd.DataFrame()
 
     out_data = run(model_name)
+
+    if not out_data:
+        logger.error("Nowcast didn't return anything. Exiting.")
+        exit()
 
     new_data = pd.DataFrame.from_dict([out_data])
 

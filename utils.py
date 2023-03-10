@@ -144,24 +144,6 @@ def determine_velocity_step_count(model_name: str, cfg: dict) -> int:
     return order + 1  # steps, sseps
 
 
-def create_run_plot_dir(date: str, rid: str) -> Path:
-    """Create a directory for plots of a specific run.
-
-    Format is DATESTR_RUNID
-
-    Args:
-        date (str): Data date
-        rid (str): Run ID
-    """
-    dir_name = f"{date}_{rid}"
-    run_plot_dir = PLOT_DIR / dir_name
-
-    if not run_plot_dir.exists():
-        run_plot_dir.mkdir(parents=True)
-
-    return run_plot_dir
-
-
 def generate_run_id(prepro_data: dict, model_name: str, model_kwargs: dict) -> str:
     """Generate a run ID based on info about the data and the nowcast model.
 
