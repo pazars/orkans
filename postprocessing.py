@@ -122,8 +122,8 @@ class PlotProcessor:
         else:
             return tstep * (self.data.shape[0] - lead_idx + 1)
 
-    def save_rank_histogram(self, lead_idx: int):
-        rankhist = verification.rankhist_init(self.data.shape[0], 0.1)
+    def save_rank_histogram(self, lead_idx: int, thr: float = 0.1):
+        rankhist = verification.rankhist_init(self.data.shape[0], thr)
         nowcast = self.data[:, lead_idx, :, :]
         reference = self.ref_data[lead_idx, :, :]
         verification.rankhist_accum(rankhist, nowcast, reference)
@@ -133,36 +133,40 @@ class PlotProcessor:
 
         leadtime = int(self._calculate_leadtime(lead_idx))
         ax.set_title(f"Rank histogram (+{leadtime} min)")
-        fname = f"rank_histogram_T{leadtime}.svg"
+        thr_parts = str(thr).split(".")
+        fname = f"rank-histogram-T{leadtime}-thr{thr_parts[0]}_{thr_parts[1]}.svg"
         plt.savefig(self.plot_dir / fname, format="svg")
 
-    def save_reliability_diagram(self, lead_idx: int):
-        reldiag = verification.reldiag_init(0.1)
+    def save_reliability_diagram(self, lead_idx: int, thr: float = 0.1):
+        reldiag = verification.reldiag_init(thr)
         nowcast = self.data[:, lead_idx, :, :]
         reference = self.ref_data[lead_idx, :, :]
-        exc_probs = ensemblestats.excprob(nowcast, 0.1, ignore_nan=True)
+        exc_probs = ensemblestats.excprob(nowcast, thr, ignore_nan=True)
         verification.reldiag_accum(reldiag, exc_probs, reference)
 
         _, ax = plt.subplots()
         verification.plot_reldiag(reldiag, ax)
         leadtime = int(self._calculate_leadtime(lead_idx))
         ax.set_title(f"Reliability diagram (T+{leadtime}min)")
-        fname = f"reliability_diagram_T{leadtime}.svg"
+        thr_parts = str(thr).split(".")
+        fname = f"reliability-diagram-T{leadtime}-thr{thr_parts[0]}_{thr_parts[1]}.svg"
         plt.savefig(self.plot_dir / fname, format="svg")
 
-    def save_roc_curve(self, lead_idx: int):
-        roc = verification.ROC_curve_init(0.1, n_prob_thrs=10)
+    def save_roc_curve(self, lead_idx: int, thr: float = 0.1):
+        roc = verification.ROC_curve_init(thr, n_prob_thrs=10)
         nowcast = self.data[:, lead_idx, :, :]
         reference = self.ref_data[lead_idx, :, :]
-        exc_probs = ensemblestats.excprob(nowcast, 0.1, ignore_nan=True)
+        exc_probs = ensemblestats.excprob(nowcast, thr, ignore_nan=True)
         verification.ROC_curve_accum(roc, exc_probs, reference)
 
         _, ax = plt.subplots()
         verification.plot_ROC(roc, ax, opt_prob_thr=True)
 
-        leadtime = self._calculate_leadtime(lead_idx)
-        ax.set_title(f"Rank histogram (+{leadtime} min)")
-        plt.savefig(self.plot_dir / "roc_curve.svg", format="svg")
+        leadtime = int(self._calculate_leadtime(lead_idx))
+        ax.set_title(f"ROC; T+{leadtime} min; threshold={thr}")
+        thr_parts = str(thr).split(".")
+        fname = f"roc-T{leadtime}-thr{thr_parts[0]}_{thr_parts[1]}.svg"
+        plt.savefig(self.plot_dir / fname, format="svg")
 
     def _plot_distribution(self, data, labels, skw):
 
