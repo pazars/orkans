@@ -38,17 +38,14 @@ class PostProcessor:
 
         self.plots = PlotProcessor(rid, obs, pred, metadata)
 
-    def calc_scores(self, cfg: dict, lead_idx: int) -> dict:
+    def calc_scores(self, threshold: float, cfg: dict, lead_idx: int) -> dict:
 
         if self.is_ensemble:
-            return self.calc_ens_scores(cfg, lead_idx)
+            return self.calc_ens_scores(cfg, lead_idx, thr=threshold)
         else:
-            return self.calc_det_scores(cfg, lead_idx)
+            return self.calc_det_scores(cfg, lead_idx, thr=threshold)
 
-    def calc_det_scores(self, cfg: dict, lead_idx: int, thr: float = None) -> dict:
-
-        if not thr:
-            thr = self.metadata["zerovalue"]
+    def calc_det_scores(self, cfg: dict, lead_idx: int, thr: float = 0.1) -> dict:
 
         pred = self.pred[lead_idx, :, :]
         obs = self.obs[lead_idx, :, :]
@@ -59,27 +56,28 @@ class PostProcessor:
 
         leadtime = self.plots._calculate_leadtime(lead_idx)
         for metric, score in score_map.items():
-            new_metric_name = f"{metric}_T{int(leadtime)}"
+            new_metric_name = f"{metric}_T{int(leadtime)}_THR{thr}"
             res[new_metric_name] = score
 
         return res
 
-    def calc_ens_scores(self, cfg: dict, lead_idx: int, thr: float = None) -> dict:
-
-        if not thr:
-            thr = self.metadata["zerovalue"]
+    def calc_ens_scores(self, cfg: dict, lead_idx: int, thr: float = 0.1) -> dict:
 
         pred = self.pred[:, lead_idx, :, :]
         obs = self.obs[lead_idx, :, :]
 
         res = {"nwc_type": "ensemble"}
-        metrics = cfg["metrics"]["ensemble"]["mean"]
+        mean_metrics = cfg["metrics"]["ensemble"]["mean"]
 
         leadtime = self.plots._calculate_leadtime(lead_idx)
-        for metric in metrics:
+        for metric in mean_metrics:
             score = ensscores.ensemble_skill(pred, obs, metric, thr=thr)
-            new_metric_name = f"{metric}_T{int(leadtime)}"
+            new_metric_name = f"{metric}_T{int(leadtime)}_THR{thr}"
             res[new_metric_name] = score
+
+        # Compute area under ROC
+        roc_metric_name = f"roc_area_T{int(leadtime)}_THR{thr}"
+        res[roc_metric_name] = self.plots.roc_curve(lead_idx, thr, area=True)
 
         return res
 
@@ -122,7 +120,7 @@ class PlotProcessor:
         else:
             return tstep * (self.data.shape[0] - lead_idx + 1)
 
-    def save_rank_histogram(self, lead_idx: int, thr: float = 0.1):
+    def rank_histogram(self, lead_idx: int, thr: float = 0.1):
         rankhist = verification.rankhist_init(self.data.shape[0], thr)
         nowcast = self.data[:, lead_idx, :, :]
         reference = self.ref_data[lead_idx, :, :]
@@ -137,7 +135,7 @@ class PlotProcessor:
         fname = f"rank-histogram-T{leadtime}-thr{thr_parts[0]}_{thr_parts[1]}.svg"
         plt.savefig(self.plot_dir / fname, format="svg")
 
-    def save_reliability_diagram(self, lead_idx: int, thr: float = 0.1):
+    def reliability_diagram(self, lead_idx: int, thr: float = 0.1):
         reldiag = verification.reldiag_init(thr)
         nowcast = self.data[:, lead_idx, :, :]
         reference = self.ref_data[lead_idx, :, :]
@@ -152,12 +150,18 @@ class PlotProcessor:
         fname = f"reliability-diagram-T{leadtime}-thr{thr_parts[0]}_{thr_parts[1]}.svg"
         plt.savefig(self.plot_dir / fname, format="svg")
 
-    def save_roc_curve(self, lead_idx: int, thr: float = 0.1):
+    def roc_curve(self, lead_idx: int, thr: float = 0.1, area: bool = False):
         roc = verification.ROC_curve_init(thr, n_prob_thrs=10)
         nowcast = self.data[:, lead_idx, :, :]
         reference = self.ref_data[lead_idx, :, :]
         exc_probs = ensemblestats.excprob(nowcast, thr, ignore_nan=True)
         verification.ROC_curve_accum(roc, exc_probs, reference)
+
+        print(roc)
+
+        if area:
+            _, _, roc_area = verification.probscores.ROC_curve_compute(roc, True)
+            return roc_area
 
         _, ax = plt.subplots()
         verification.plot_ROC(roc, ax, opt_prob_thr=True)
@@ -268,11 +272,11 @@ class PlotProcessor:
         plt.clf()
         self.save_nowcast_field(lead_idx, ensemble=True)
         plt.clf()
-        self.save_rank_histogram(lead_idx)
+        self.rank_histogram(lead_idx)
         plt.clf()
-        self.save_reliability_diagram(lead_idx)
+        self.reliability_diagram(lead_idx)
         plt.clf()
-        self.save_roc_curve(lead_idx)
+        self.roc_curve(lead_idx)
 
     def save_all_deterministic_plots(self, lead_idx: int):
 

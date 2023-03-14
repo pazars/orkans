@@ -21,6 +21,12 @@ finally:
     from orkans.postprocessing import PostProcessor
 
 
+# TODO Run and batch run
+# TODO Check if run already exists
+# TODO Setup pytest and add it to Github Actions
+# TODO Run queue
+
+
 @logger.catch
 def run(model_name: str):
 
@@ -145,7 +151,7 @@ def run(model_name: str):
     # If a model uses different units as input, convert before moving on!
 
     post_proc = PostProcessor(run_id, rainrate_valid, nwc, metadata_nwc)
-    scores = post_proc.calc_scores(cfg, lead_idx=0)
+    scores = post_proc.calc_scores(0.1, cfg, lead_idx=0)
     out_data |= scores
 
     post_proc.save_plots()
