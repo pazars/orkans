@@ -78,6 +78,11 @@ def run(model_name: str):
         Lambda,
     )
 
+    # IMPORTANT!
+    # Need to update precipitation threshold since data has changed
+    # TODO: Figure out how to implement this in a more fool-proof way
+    model_kwargs["precip_thr"] = metadata_transform["threshold"]
+
     out_data["transform"] = best_tfunc.__name__
     out_data["boxcox_lambda"] = Lambda
 
@@ -139,7 +144,7 @@ def run(model_name: str):
     # All nowcasts should be in mm/h
     # If a model uses different units as input, convert before moving on!
 
-    post_proc = PostProcessor(run_id, rainrate_no_transform, nwc, metadata_no_transform)
+    post_proc = PostProcessor(run_id, rainrate_valid, nwc, metadata_nwc)
     scores = post_proc.calc_scores(cfg, lead_idx=0)
     out_data |= scores
 
@@ -167,7 +172,7 @@ if __name__ == "__main__":
         retention="1 week",
     )
 
-    model_name = "anvil"  # steps, sseps, anvil, linda
+    model_name = "steps"  # steps, sseps, anvil, linda
 
     fname = f"nowcasts_{model_name}.csv"
 

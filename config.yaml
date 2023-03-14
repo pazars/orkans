@@ -59,7 +59,7 @@ model:
       callback: null
       return_output: true
     metadata:
-      # Model parameters that can be automatically read from the metadata
+      # Model parameters that can (and should) be automatically read from the metadata
       # Value in this list is the metadata key
       # Overwrites default values in manual
       precip_thr: threshold
@@ -154,4 +154,9 @@ metrics:
       - MAE # Mean Absolute Error
       - RMSE # Root Mean Squared Error
       - RV # Reduction of Variance (Brier Score)
-    prob:
+    roc:
+      # Intensity thresholds for which ROC area is calculated
+      - 0.1
+      - 1
+      - 2
+      - 4
