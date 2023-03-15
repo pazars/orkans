@@ -7,18 +7,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Setup Miniconda
-        uses: conda-incubator/setup-miniconda@v2.2.0
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v2
         with:
-          auto-update-conda: true
-          activate-environment: nwc
-          channels: conda-forge
-          channel-priority: strict
-          environment-file: etc/environment.yml
           python-version: 3.10
-          auto-activate-base: false
+      - name: Install dependencies
+        run: |
+          # $CONDA is an environment variable pointing to the root of the miniconda directory
+          $CONDA/bin/conda env update --file etc/environment.yml --name base
+      # - name: Setup Miniconda
+      #   uses: conda-incubator/setup-miniconda@v2.2.0
+      #   with:
+      #     auto-update-conda: true
+      #     activate-environment: nwc
+      #     channels: conda-forge
+      #     channel-priority: strict
+      #     environment-file: etc/environment.yml
+      #     python-version: 3.10
+      #     auto-activate-base: false
       - name: Run conda commands
-        shell: bash -el {0}
+        # shell: bash -el {0}
         run: |
           conda info
           conda list
