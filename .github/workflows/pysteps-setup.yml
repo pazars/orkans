@@ -55,3 +55,9 @@ jobs:
         env:
           PYSTEPS_DATA_PATH: ${{github.workspace}}/pysteps_data
         run: python etc/fetch_pysteps_data.py
+
+      - name: Run tests
+        working-directory: ${{github.workspace}}/pysteps_data
+        env:
+          PYSTEPSRC: ${{github.workspace}}/pysteps_data/pystepsrc
+        run: pytest
