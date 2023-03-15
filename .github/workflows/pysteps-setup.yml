@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        os: ["ubuntu-latest"] # ["ubuntu-latest", "macos-latest", "windows-latest"]
         python-version: ["3.10"]
       max-parallel: 6
 
@@ -50,3 +50,6 @@ jobs:
           python -c "from pysteps import motion"
           python -c "from pysteps.motion import vet"
           python -c "from pysteps.motion import proesmans"
+
+      - name: Download pysteps data
+        run: python etc/fetch_pysteps_data.py
