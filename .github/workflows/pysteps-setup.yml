@@ -41,17 +41,12 @@ jobs:
       - name: Update environment
         run: mamba env update -n my-env -f environment-dev.yml
 
-      - name: Check imports
-        working-directory: ${{github.workspace}}/pysteps_data
+      - name: Check python
+        run: python --version
+
+      - name: Check pysteps imports
         run: |
-          python --version
           python -c "import pysteps; print(pysteps.__file__)"
           python -c "from pysteps import motion"
           python -c "from pysteps.motion import vet"
           python -c "from pysteps.motion import proesmans"
-
-      - name: Download pysteps data
-        env:
-          PYSTEPS_DATA_PATH: ${{github.workspace}}/pysteps_data
-        working-directory: ${{github.workspace}}/etc
-        run: python fetch_pysteps_data.py
