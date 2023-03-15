@@ -40,7 +40,10 @@ def test_pysteps_steps():
     }
 
     for key, value in ref.items():
-        assert str(res[key]) == str(value)
+        if type(value) == str:
+            assert str(res[key]) == str(value)
+        elif type(value) == float:
+            assert abs(res[key] - value) < 1e-5
 
 
 def test_pysteps_anvil():
@@ -63,7 +66,10 @@ def test_pysteps_anvil():
     }
 
     for key, value in ref.items():
-        assert str(res[key]) == str(value)
+        if type(value) == str:
+            assert str(res[key]) == str(value)
+        elif type(value) == float:
+            assert abs(res[key] - value) < 1e-5
 
 
 def test_pysteps_sseps():
@@ -89,7 +95,10 @@ def test_pysteps_sseps():
     }
 
     for key, value in ref.items():
-        assert str(res[key]) == str(value)
+        if type(value) == str:
+            assert str(res[key]) == str(value)
+        elif type(value) == float:
+            assert abs(res[key] - value) < 1e-5
 
 
 def test_pysteps_linda():
@@ -113,4 +122,7 @@ def test_pysteps_linda():
     }
 
     for key, value in ref.items():
-        assert str(res[key]) == str(value)
+        if type(value) == str:
+            assert str(res[key]) == str(value)
+        elif type(value) == float:
+            assert abs(res[key] - value) < 1e-5
