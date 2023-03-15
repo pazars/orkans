@@ -20,17 +20,11 @@ jobs:
         echo $CONDA/bin >> $GITHUB_PATH
     - name: Install dependencies
       run: |
-        # Initialize shell environment
-        conda init bash
-        # Create an environment
-        conda create --name nwc
-        # Activate it
-        conda activate nwc
         # Update conda-forge channel priority (otherwise env update fails)
         conda config --env --prepend channels conda-forge
         conda config --env --set channel_priority strict
         # Install dependencies
-        conda env update --file environment.yml --name nwc
+        conda env update --file environment.yml --name base
     - name: Lint with flake8
       run: |
         conda install flake8
