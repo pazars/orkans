@@ -44,7 +44,12 @@ jobs:
           key: ${{ matrix.label }}-conda-${{ hashFiles('environment-dev.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache
 
+      - name: Check working directory
+        working-directory: ${{github.workspace}}
+        run: echo ${{github.workspace}}
+
       - name: Update environment
+        working-directory: ${{github.workspace}}
         run: mamba env update -n my-env -f environment-dev.yml
         if: steps.cache.outputs.cache-hit != 'true'
 
