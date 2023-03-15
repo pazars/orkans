@@ -4,7 +4,7 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - altair=4.2.2=pyhd8ed1ab_0
+  - altair=4.2.2 # =pyhd8ed1ab_0
   - appdirs=1.4.4=pyh9f0ad1d_0
   - arrow-cpp=8.0.0=py310h38b8b19_0
   - asttokens=2.0.5=pyhd3eb1b0_0
