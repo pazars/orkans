@@ -48,6 +48,12 @@ jobs:
         run: mamba env update -n my-env -f environment-dev.yml
         if: steps.cache.outputs.cache-hit != 'true'
 
+      - name: Download pysteps data
+        env:
+          PYSTEPS_DATA_PATH: ${{github.workspace}}/pysteps_data
+        working-directory: ${{github.workspace}}/etc
+        run: python fetch_pysteps_data.py
+
       - name: Run tests
         shell: bash -l {0}
         run: pytest ./tests
