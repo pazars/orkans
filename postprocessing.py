@@ -2,7 +2,6 @@ from pathlib import Path
 
 from pysteps.verification import detcontscores, ensscores
 
-import os
 import sys
 import shutil
 from pathlib import Path
@@ -156,8 +155,6 @@ class PlotProcessor:
         reference = self.ref_data[lead_idx, :, :]
         exc_probs = ensemblestats.excprob(nowcast, thr, ignore_nan=True)
         verification.ROC_curve_accum(roc, exc_probs, reference)
-
-        print(roc)
 
         if area:
             _, _, roc_area = verification.probscores.ROC_curve_compute(roc, True)

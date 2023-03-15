@@ -44,7 +44,7 @@ model:
       conditional: false
       probmatching_method: "cdf"
       mask_method: "incremental"
-      seed: null
+      seed: 2023
       num_workers: 1
       fft_method: "numpy"
       domain: "spatial"
@@ -100,7 +100,7 @@ model:
       vel_pert_kwargs: null
       kmperpixel: null
       timestep: null
-      seed: null
+      seed: 2023
       num_workers: 1
       use_multiprocessing: False
       measure_time: False
@@ -130,7 +130,7 @@ model:
       callback: null
       fft_method: numpy
       return_output: True
-      seed: null
+      seed: 2023
       num_workers: 1
       extrap_kwargs: null
       filter_kwargs: null
