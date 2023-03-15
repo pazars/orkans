@@ -52,4 +52,6 @@ jobs:
           python -c "from pysteps.motion import proesmans"
 
       - name: Download pysteps data
+        env:
+          PYSTEPS_DATA_PATH: ${{github.workspace}}/pysteps_data
         run: python etc/fetch_pysteps_data.py
