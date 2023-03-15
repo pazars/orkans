@@ -5,13 +5,10 @@ on: [push]
 jobs:
   conda:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash -el {0}
-
     steps:
       - uses: actions/checkout@v3
-      - uses: conda-incubator/setup-miniconda@v2
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v2.2.0
         with:
           activate-environment: nwc
           channels: conda-forge
@@ -19,6 +16,8 @@ jobs:
           environment-file: etc/environment.yml
           python-version: 3.10
           auto-activate-base: false
-      - run: |
+      - name: Run conda commands
+        shell: bash -el {0}
+        run: |
           conda info
           conda list

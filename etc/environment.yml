@@ -1,14 +1,13 @@
 name: nwc
 channels:
-  - conda-forge
   - anaconda
+  - conda-forge
   - defaults
 dependencies:
   - altair=4.2.2=pyhd8ed1ab_0
   - appdirs=1.4.4=pyh9f0ad1d_0
   - arrow-cpp=8.0.0=py310h38b8b19_0
   - asttokens=2.0.5=pyhd3eb1b0_0
-  - attrs=19.1.0=py_0
   - aws-c-common=0.4.57=ha925a31_1
   - aws-c-event-stream=0.1.6=hd77b12b_5
   - aws-checksums=0.1.9=ha925a31_0
@@ -55,7 +54,6 @@ dependencies:
   - dask=2023.1.1=pyhd8ed1ab_0
   - dask-core=2023.1.1=pyhd8ed1ab_0
   - dataclasses=0.8=pyhc8e2a94_3
-  - datapane=0.15.6=pyhd8ed1ab_0
   - debugpy=1.5.1=py310hd77b12b_0
   - decorator=5.1.1=pyhd3eb1b0_0
   - defusedxml=0.7.1=pyhd8ed1ab_0
@@ -279,12 +277,17 @@ dependencies:
   - zstd=1.5.2=h19a0ad4_0
   - pip:
       - astroid==2.15.0
+      - attrs==22.2.0
       - dill==0.3.6
+      - exceptiongroup==1.1.1
+      - iniconfig==2.0.0
       - isort==5.12.0
       - lazy-object-proxy==1.9.0
       - loguru==0.6.0
       - opencv-python==4.7.0.68
       - pillow==9.4.0
+      - pluggy==1.0.0
+      - pytest==7.2.2
       - tomlkit==0.11.6
       - win32-setctime==1.1.0
       - wrapt==1.15.0
