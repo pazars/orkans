@@ -41,8 +41,8 @@ jobs:
       - name: Update environment
         run: mamba env update -n my-env -f environment-dev.yml
 
-      - name: Check python
-        run: python --version
+      - name: Check installed packages
+        run: conda list
 
       - name: Check pysteps imports
         run: |
