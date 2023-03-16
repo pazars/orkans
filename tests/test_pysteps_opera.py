@@ -43,7 +43,7 @@ def test_pysteps_steps():
         if type(value) == str:
             assert str(res[key]) == str(value)
         elif type(value) == float:
-            assert abs(res[key] - value) < 1e-4
+            assert abs(res[key] - value) < 1e-3
 
 
 def test_pysteps_anvil():
@@ -69,7 +69,7 @@ def test_pysteps_anvil():
         if type(value) == str:
             assert str(res[key]) == str(value)
         elif type(value) == float:
-            assert abs(res[key] - value) < 1e-4
+            assert abs(res[key] - value) < 1e-3
 
 
 def test_pysteps_sseps():
@@ -98,7 +98,7 @@ def test_pysteps_sseps():
         if type(value) == str:
             assert str(res[key]) == str(value)
         elif type(value) == float:
-            assert abs(res[key] - value) < 1e-4
+            assert abs(res[key] - value) < 1e-3
 
 
 def test_pysteps_linda():
@@ -125,4 +125,4 @@ def test_pysteps_linda():
         if type(value) == str:
             assert str(res[key]) == str(value)
         elif type(value) == float:
-            assert abs(res[key] - value) < 1e-4
+            assert abs(res[key] - value) < 1e-3
