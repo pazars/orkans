@@ -42,6 +42,7 @@ jobs:
           miniforge-variant: Mambaforge
           miniforge-version: latest
           activate-environment: dev-env
+          use-only-tar-bz2: true
           use-mamba: true
 
       - name: Get Date
