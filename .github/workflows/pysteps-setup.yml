@@ -1,12 +1,9 @@
-name: Test pysteps setup
+name: Testing
 
 on:
-  push:
+  pull_request:
     branches:
-      - testing
-  # pull_request:
-  #   branches:
-  #     - main
+      - main
 
 env:
   PYSTEPS_DATA_PATH: ${{github.workspace}}/pysteps_data
