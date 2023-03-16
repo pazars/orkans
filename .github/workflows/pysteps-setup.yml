@@ -78,7 +78,7 @@ jobs:
       - name: Generate pysteps data hash key
         env:
           PYSTEPS_DATA_PATH: ${{github.workspace}}/pysteps_data
-        run: pysteps-data-key=hashFiles(echo ${{ env.PYSTEPS_DATA_PATH }})
+        run: pysteps-data-key=hashFiles(${{ env.PYSTEPS_DATA_PATH }})
 
       - name: Cache pysteps data
         id: cache-pysteps-data
