@@ -39,8 +39,26 @@ jobs:
           activate-environment: my-env
           use-mamba: true
 
+      - name: Get Date
+        id: get-date
+        run: echo "today=$(/bin/date -u '+%Y%m%d')" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Cache Conda env
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.CONDA }}/envs
+          key: conda-${{ matrix.os }}--${{ matrix.arch }}--${{
+            steps.get-date.outputs.today }}-${{
+            hashFiles('environment-dev.yml') }}-${{ env.CACHE_NUMBER }}
+        env:
+          # Increase this value to reset cache if etc/example-environment.yml has not changed
+          CACHE_NUMBER: 0
+        id: cache
+
       - name: Update environment
         run: mamba env update -n my-env -f environment-dev.yml
+        if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Check Python version
         run: python --version
