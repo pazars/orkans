@@ -33,6 +33,7 @@ jobs:
       - name: Setup Mambaforge
         uses: conda-incubator/setup-miniconda@v2
         with:
+          python-version: ${{ matrix.python-version }}
           miniforge-variant: Mambaforge
           miniforge-version: latest
           activate-environment: my-env
@@ -40,6 +41,9 @@ jobs:
 
       - name: Update environment
         run: mamba env update -n my-env -f environment-dev.yml
+
+      - name: Check Python version
+        run: python --version
 
       - name: Check installed packages
         run: conda list
