@@ -8,6 +8,11 @@ on:
   #   branches:
   #     - main
 
+env:
+  PYSTEPS_DATA_PATH: ${{github.workspace}}/pysteps_data
+  # Increase this value to reset conda env cache if environment-dev.yml has not changed
+  CACHE_NUMBER: 0
+
 jobs:
   unit_tests:
     name: Unit Tests (${{ matrix.python-version }}, ${{ matrix.os }})
@@ -36,7 +41,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           miniforge-variant: Mambaforge
           miniforge-version: latest
-          activate-environment: my-env
+          activate-environment: dev-env
           use-mamba: true
 
       - name: Get Date
@@ -51,13 +56,10 @@ jobs:
           key: conda-${{ matrix.os }}--${{ matrix.arch }}--${{
             steps.get-date.outputs.today }}-${{
             hashFiles('environment-dev.yml') }}-${{ env.CACHE_NUMBER }}
-        env:
-          # Increase this value to reset cache if etc/example-environment.yml has not changed
-          CACHE_NUMBER: 0
         id: cache
 
       - name: Update environment
-        run: mamba env update -n my-env -f environment-dev.yml
+        run: mamba env update -n dev-env -f environment-dev.yml
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Check Python version
@@ -74,9 +76,17 @@ jobs:
           python -c "from pysteps.motion import proesmans"
 
       - name: Download pysteps data
-        env:
-          PYSTEPS_DATA_PATH: ${{github.workspace}}/pysteps_data
         run: python etc/fetch_pysteps_data.py
+        if: steps.pysteps-cache.outputs.cache-hit != 'true'
+
+      - name: Cache pysteps data
+        id: cache-pysteps-data
+        uses: actions/cache@v3
+        env:
+          pysteps-cache: cache-pysteps-data
+        with:
+          path: ${{ env.PYSTEPS_DATA_PATH }}
+          key: ${{ matrix.os }}-build-${{ env.pysteps-cache }}-${{ hashFiles(${{ env.PYSTEPS_DATA_PATH }})}}
 
       - name: Run tests
         env:
