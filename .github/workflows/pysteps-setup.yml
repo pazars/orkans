@@ -42,7 +42,6 @@ jobs:
           miniforge-variant: Mambaforge
           miniforge-version: latest
           activate-environment: dev-env
-          use-only-tar-bz2: true
           use-mamba: true
 
       - name: Get Date
@@ -93,18 +92,6 @@ jobs:
       - name: Download pysteps data
         run: python etc/fetch_pysteps_data.py
         if: steps.pysteps-cache.outputs.cache-hit != 'true'
-
-      - name: Generate pysteps data hash key
-        run: pysteps-data-key=hashFiles(echo ${{ env.PYSTEPS_DATA_PATH }})
-
-      - name: Cache pysteps data
-        id: cache-pysteps-data
-        uses: actions/cache@v3
-        env:
-          pysteps-cache: cache-pysteps-data
-        with:
-          path: ${{ env.PYSTEPS_DATA_PATH }}
-          key: ${{ matrix.os }}-build-${{ env.pysteps-cache }}-$pysteps-data-key
 
       - name: Run tests
         env:
