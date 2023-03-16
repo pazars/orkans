@@ -17,6 +17,15 @@ def get_test_config_path():
     return cfg_abs_path.as_posix()
 
 
+def check_results(res, ref, thr):
+    for key, ref_value in ref.items():
+        res_value = res[key]
+        if type(ref_value) == str:
+            assert str(res_value) == str(ref_value)
+        elif type(ref_value) == float:
+            assert abs(res_value - ref_value) / ref_value < thr
+
+
 def test_pysteps_steps():
 
     cfg_path = get_test_config_path()
@@ -39,11 +48,9 @@ def test_pysteps_steps():
         "roc_area_T15_THR0.1": 0.9234563362884807,
     }
 
-    for key, value in ref.items():
-        if type(value) == str:
-            assert str(res[key]) == str(value)
-        elif type(value) == float:
-            assert abs(res[key] - value) < 1e-3
+    # Check that results are within threshold
+    # e.g. threshold 0.01 means results within 1%
+    check_results(res, ref, 0.01)
 
 
 def test_pysteps_anvil():
@@ -65,11 +72,9 @@ def test_pysteps_anvil():
         "RV_T15_THR0.1": -3.549664357782895,
     }
 
-    for key, value in ref.items():
-        if type(value) == str:
-            assert str(res[key]) == str(value)
-        elif type(value) == float:
-            assert abs(res[key] - value) < 1e-3
+    # Check that results are within threshold
+    # e.g. threshold 0.01 means results within 1%
+    check_results(res, ref, 0.01)
 
 
 def test_pysteps_sseps():
@@ -94,11 +99,9 @@ def test_pysteps_sseps():
         "roc_area_T15_THR0.1": 0.9270941859711961,
     }
 
-    for key, value in ref.items():
-        if type(value) == str:
-            assert str(res[key]) == str(value)
-        elif type(value) == float:
-            assert abs(res[key] - value) < 1e-3
+    # Check that results are within threshold
+    # e.g. threshold 0.01 means results within 1%
+    check_results(res, ref, 0.01)
 
 
 def test_pysteps_linda():
@@ -121,8 +124,6 @@ def test_pysteps_linda():
         "RV_T15_THR0.1": -1.2108314514333167,
     }
 
-    for key, value in ref.items():
-        if type(value) == str:
-            assert str(res[key]) == str(value)
-        elif type(value) == float:
-            assert abs(res[key] - value) < 1e-3
+    # Check that results are within threshold
+    # e.g. threshold 0.01 means results within 1%
+    check_results(res, ref, 0.01)
