@@ -86,7 +86,7 @@ jobs:
           pysteps-cache: cache-pysteps-data
         with:
           path: ${{ env.PYSTEPS_DATA_PATH }}
-          key: ${{ matrix.os }}-build-${{ env.pysteps-cache }}-${{ hashFiles(${{ env.PYSTEPS_DATA_PATH }})}}
+          key: ${{ matrix.os }}-build-${{ env.pysteps-cache }}-${{ hashFiles(echo ${{ env.PYSTEPS_DATA_PATH }})}}
 
       - name: Run tests
         env:
