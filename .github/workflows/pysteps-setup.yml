@@ -79,12 +79,14 @@ jobs:
         run: python etc/fetch_pysteps_data.py
         if: steps.pysteps-cache.outputs.cache-hit != 'true'
 
+      - name: Generate pysteps data hash key
+        run: pysteps-data-key=hashFiles(echo ${{ env.PYSTEPS_DATA_PATH }})
+
       - name: Cache pysteps data
         id: cache-pysteps-data
         uses: actions/cache@v3
         env:
           pysteps-cache: cache-pysteps-data
-        run: pysteps-data-key=hashFiles(echo ${{ env.PYSTEPS_DATA_PATH }})
         with:
           path: ${{ env.PYSTEPS_DATA_PATH }}
           key: ${{ matrix.os }}-build-${{ env.pysteps-cache }}-$pysteps-data-key
