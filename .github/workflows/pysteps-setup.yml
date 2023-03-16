@@ -1,0 +1,81 @@
+name: Testing
+
+on:
+  pull_request:
+    branches:
+      - main
+
+env:
+  PYSTEPS_DATA_PATH: ${{github.workspace}}/pysteps_data
+  # Increase this value to reset conda env cache if environment-dev.yml has not changed
+  CACHE_NUMBER: 0
+
+jobs:
+  unit_tests:
+    name: Unit Tests (${{ matrix.python-version }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        python-version: ["3.9", "3.10"]
+      max-parallel: 6
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Setup Mambaforge
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          miniforge-variant: Mambaforge
+          miniforge-version: latest
+          activate-environment: dev-env
+          use-mamba: true
+
+      - name: Get Date
+        id: get-date
+        run: echo "today=$(/bin/date -u '+%Y%m%d')" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Cache Conda env
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.CONDA }}/envs
+          key: conda-${{ matrix.os }}--${{ matrix.arch }}--${{
+            steps.get-date.outputs.today }}-${{
+            hashFiles('environment-dev.yml') }}-${{ env.CACHE_NUMBER }}
+        id: cache
+
+      - name: Update environment
+        run: mamba env update -n dev-env -f environment-dev.yml
+        if: steps.cache.outputs.cache-hit != 'true'
+
+      - name: Check Python version
+        run: python --version
+
+      - name: Check installed packages
+        run: conda list
+
+      - name: Check pysteps imports
+        run: |
+          python -c "import pysteps; print(pysteps.__file__)"
+          python -c "from pysteps import motion"
+          python -c "from pysteps.motion import vet"
+          python -c "from pysteps.motion import proesmans"
+
+      - name: Download pysteps data
+        run: python etc/fetch_pysteps_data.py
+
+      - name: Run tests
+        env:
+          PYSTEPSRC: ${{github.workspace}}/pysteps_data/pystepsrc
+        run: pytest

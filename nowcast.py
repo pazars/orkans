@@ -28,7 +28,11 @@ finally:
 
 
 @logger.catch
-def run(model_name: str):
+def run(
+    model_name: str,
+    cfg_path: Path = None,
+    test: bool = False,
+):
 
     tstart = time.perf_counter()
 
@@ -37,7 +41,7 @@ def run(model_name: str):
     logger.info("Run started.")
 
     # Load configuration file
-    cfg = utils.load_config()
+    cfg = utils.load_config(cfg_path)
 
     # Number of timesteps to use for velocity field estimation
     n_vsteps = utils.determine_velocity_step_count(model_name, cfg)
@@ -87,7 +91,8 @@ def run(model_name: str):
     # IMPORTANT!
     # Need to update precipitation threshold since data has changed
     # TODO: Figure out how to implement this in a more fool-proof way
-    model_kwargs["precip_thr"] = metadata_transform["threshold"]
+    if "precip_thr" in model_kwargs:
+        model_kwargs["precip_thr"] = metadata_transform["threshold"]
 
     out_data["transform"] = best_tfunc.__name__
     out_data["boxcox_lambda"] = Lambda
@@ -118,6 +123,8 @@ def run(model_name: str):
             n_leadtimes,
             **model_kwargs,
         )
+
+        metadata_nwc = metadata_no_transform
 
     elif model_name == "sseps":
         nwc = model_func(
@@ -154,7 +161,8 @@ def run(model_name: str):
     scores = post_proc.calc_scores(0.1, cfg, lead_idx=0)
     out_data |= scores
 
-    post_proc.save_plots()
+    if not test:
+        post_proc.save_plots()
 
     out_data["nwc_run_time"] = tend_nwc - tstart_nwc
 
