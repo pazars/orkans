@@ -11,6 +11,7 @@ from orkans import nowcast, utils
 
 if __name__ == "__main__":
 
+    # TODO Fix logger for multiprocessing
     logger.add(
         LOG_PATH,
         backtrace=True,

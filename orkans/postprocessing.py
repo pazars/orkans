@@ -77,6 +77,7 @@ class PostProcessor:
             self.plots.save_all_deterministic_plots(lead_idx)
 
     def save_results(self, model_name, out_data):
+        # TODO: Can multiple processes try to I/O at same time?
 
         if not out_data:
             logger.error("Nowcast didn't return anything. Exiting.")
