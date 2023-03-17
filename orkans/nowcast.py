@@ -1,30 +1,16 @@
 import time
-import sys
-import os
 
-import pandas as pd
-
-from pathlib import Path
 from loguru import logger
 from pysteps import nowcasts
 from pysteps.motion.lucaskanade import dense_lucaskanade
 
-try:
-    from orkans import utils
-except ModuleNotFoundError:
-    LIB_DIR = (Path(".") / "..").resolve().as_posix()
-    sys.path.append(LIB_DIR)
-finally:
-    from orkans import utils
-    from orkans import OUT_DIR, LOG_PATH, PRECIP_RATIO_THR
-    from orkans.preprocessing import PreProcessor
-    from orkans.postprocessing import PostProcessor
-
+from orkans import PRECIP_RATIO_THR
+from orkans import utils
+from orkans.postprocessing import PostProcessor
+from orkans.preprocessing import PreProcessor
 
 # TODO Run and batch run
 # TODO Check if run already exists
-# TODO Setup pytest and add it to Github Actions
-# TODO Run queue
 
 
 @logger.catch
@@ -170,38 +156,17 @@ def run(
     tend = time.perf_counter()
     out_data["total_run_time"] = tend - tstart
 
+    post_proc.save_results(model_name, out_data)
+
     return out_data
 
 
 if __name__ == "__main__":
 
-    model_name = "steps"  # steps, sseps, anvil, linda
-
-    fname = f"nowcasts_{model_name}.csv"
-
-    if not OUT_DIR.exists():
-        os.mkdir(OUT_DIR)
-
-    out_path = OUT_DIR / fname
-
-    if out_path.exists():
-        data = pd.read_csv(out_path)
-    else:
-        data = pd.DataFrame()
+    # steps, sseps, anvil, linda
+    model_name = "steps"
 
     # Load configuration file
     cfg = utils.load_config()
 
-    out_data = run(model_name, cfg)
-
-    if not out_data:
-        logger.error("Nowcast didn't return anything. Exiting.")
-        exit()
-
-    new_data = pd.DataFrame.from_dict([out_data])
-
-    # Output run results
-    data = pd.concat([data, new_data])
-
-    # Index set to True leads to a redundant column at next read
-    data.to_csv(out_path, index=False)
+    run(model_name, cfg)

@@ -1,17 +1,12 @@
-import os
-import yaml
 import hashlib
-
-import numpy as np
-
 from datetime import datetime
 from pathlib import Path
+
+import numpy as np
+import yaml
 from loguru import logger
-
-
-from pysteps import rcparams
-from pysteps import io
-from pysteps.utils import conversion, clip_domain
+from pysteps import io, rcparams
+from pysteps.utils import clip_domain, conversion
 
 
 def load_config(cfg_path: Path = None) -> dict:
@@ -51,6 +46,7 @@ def load_and_parse_config(cfg_path: Path = None) -> list[dict]:
     Returns:
         dict: Configuration file loaded as a dictionary object.
     """
+    # TODO
     raw_cfg = load_config(cfg_path)
 
     return [raw_cfg]
