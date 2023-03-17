@@ -2,8 +2,11 @@ import argparse
 import asyncio
 import time
 
-from orkans import utils, LOG_PATH, CFG_PATH
 from loguru import logger
+
+
+from orkans import LOG_PATH, CFG_PATH
+from orkans import nowcast, utils
 
 
 async def worker(name, queue):
@@ -85,5 +88,10 @@ if __name__ == "__main__":
     print(args.models)
 
     cfgs = utils.load_and_parse_config(CFG_PATH)
+
+    nwc_arg_zip = zip(args.models, cfgs)
+    for nwc_args in nwc_arg_zip:
+        model_name, cfg = nwc_args
+        nowcast.run(model_name, cfg)
 
     # asyncio.run(main())

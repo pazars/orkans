@@ -53,7 +53,7 @@ def load_and_parse_config(cfg_path: Path = None) -> list[dict]:
     """
     raw_cfg = load_config(cfg_path)
 
-    return [{}]
+    return [raw_cfg]
 
 
 def load_rainrate_data(cfg: dict, n_vsteps: int) -> tuple[np.ndarray, dict]:

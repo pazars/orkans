@@ -30,7 +30,7 @@ finally:
 @logger.catch
 def run(
     model_name: str,
-    cfg_path: Path = None,
+    cfg: dict,
     test: bool = False,
 ):
 
@@ -39,9 +39,6 @@ def run(
     out_data = {}
 
     logger.info("Run started.")
-
-    # Load configuration file
-    cfg = utils.load_config(cfg_path)
 
     # Number of timesteps to use for velocity field estimation
     n_vsteps = utils.determine_velocity_step_count(model_name, cfg)
@@ -192,7 +189,10 @@ if __name__ == "__main__":
     else:
         data = pd.DataFrame()
 
-    out_data = run(model_name)
+    # Load configuration file
+    cfg = utils.load_config()
+
+    out_data = run(model_name, cfg)
 
     if not out_data:
         logger.error("Nowcast didn't return anything. Exiting.")
