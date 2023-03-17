@@ -1,6 +1,10 @@
 # Log file path for loguru
 from pathlib import Path
 
+# Configuration file path
+CFG_PATH = (Path(".") / "config.yaml").resolve()
+
+# Log file path
 LOG_PATH = (Path(".") / "logs" / "log.txt").resolve()
 
 # Result path

@@ -1,5 +1,9 @@
+import argparse
 import asyncio
 import time
+
+from orkans import utils, LOG_PATH, CFG_PATH
+from loguru import logger
 
 
 async def worker(name, queue):
@@ -49,4 +53,37 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+
+    logger.add(
+        LOG_PATH,
+        backtrace=True,
+        diagnose=True,
+        rotation="1 day",
+        retention="1 week",
+    )
+
+    parser = argparse.ArgumentParser(description="Description goes here.")
+
+    parser.add_argument(
+        "-m",
+        "--models",
+        required=True,
+        nargs="+",
+        help="Nowcast model name(s) (steps, sseps, anvil, linda)",
+    )
+
+    parser.add_argument(
+        "-w",
+        "--workers",
+        nargs=1,
+        type=int,
+        default=1,
+        help="Number or parallel workers used to run models",
+    )
+
+    args = parser.parse_args()
+    print(args.models)
+
+    cfgs = utils.load_and_parse_config(CFG_PATH)
+
+    # asyncio.run(main())

@@ -178,14 +178,6 @@ def run(
 
 if __name__ == "__main__":
 
-    logger.add(
-        LOG_PATH,
-        backtrace=True,
-        diagnose=True,
-        rotation="1 day",
-        retention="1 week",
-    )
-
     model_name = "steps"  # steps, sseps, anvil, linda
 
     fname = f"nowcasts_{model_name}.csv"
