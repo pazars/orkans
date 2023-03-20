@@ -1,17 +1,12 @@
-import os
-import yaml
 import hashlib
-
-import numpy as np
-
 from datetime import datetime
 from pathlib import Path
 
-from pysteps import rcparams
-from pysteps import io
-from pysteps.utils import conversion, clip_domain
-
-from orkans import PLOT_DIR
+import numpy as np
+import yaml
+from loguru import logger
+from pysteps import io, rcparams
+from pysteps.utils import clip_domain, conversion
 
 
 def load_config(cfg_path: Path = None) -> dict:
@@ -33,7 +28,28 @@ def load_config(cfg_path: Path = None) -> dict:
         cfg_path = script_dir / "config.yaml"
 
     with open(cfg_path, "r") as file:
-        return yaml.safe_load(file)
+        cfg = yaml.safe_load(file)
+
+    logger.info(f"Read config from {cfg_path.as_posix()}")
+    return cfg
+
+
+def load_and_parse_config(cfg_path: Path = None) -> list[dict]:
+    """Load and parse config for bath runs.
+
+    Recongizes which parameters need multiple runs.
+    Prepares configurations for each run.
+
+    Args:
+        cfg_path (Path, optional): Configuration file path. Defaults to None.
+
+    Returns:
+        dict: Configuration file loaded as a dictionary object.
+    """
+    # TODO
+    raw_cfg = load_config(cfg_path)
+
+    return [raw_cfg]
 
 
 def load_rainrate_data(cfg: dict, n_vsteps: int) -> tuple[np.ndarray, dict]:

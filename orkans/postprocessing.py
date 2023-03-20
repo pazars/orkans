@@ -1,29 +1,19 @@
-from pathlib import Path
-
-from pysteps.verification import detcontscores, ensscores
-
-import sys
+import os
 import shutil
-from pathlib import Path
-
-import numpy as np
 
 import matplotlib.pyplot as plt
-
-from scipy import stats
+import numpy as np
+import pandas as pd
+from loguru import logger
 from pysteps import verification
-from pysteps.utils import transformation
 from pysteps.postprocessing import ensemblestats
+from pysteps.utils import transformation
+from pysteps.verification import detcontscores, ensscores
 from pysteps.visualization import plot_precip_field
+from scipy import stats
 
-try:
-    from orkans.preprocessing import find_best_boxcox_lambda
-except ModuleNotFoundError:
-    LIB_DIR = (Path(".") / "..").resolve().as_posix()
-    sys.path.append(LIB_DIR)
-finally:
-    from orkans.preprocessing import find_best_boxcox_lambda
-    from orkans import PLOT_DIR
+from orkans import OUT_DIR, PLOT_DIR
+from orkans.preprocessing import find_best_boxcox_lambda
 
 
 class PostProcessor:
@@ -85,6 +75,33 @@ class PostProcessor:
             self.plots.save_all_ensemble_plots(lead_idx)
         else:
             self.plots.save_all_deterministic_plots(lead_idx)
+
+    def save_results(self, model_name, out_data):
+        # TODO: Can multiple processes try to I/O at same time?
+
+        if not out_data:
+            logger.error("Nowcast didn't return anything. Exiting.")
+            exit()
+
+        fname = f"nowcasts_{model_name}.csv"
+
+        if not OUT_DIR.exists():
+            os.mkdir(OUT_DIR)
+
+        out_path = OUT_DIR / fname
+
+        if out_path.exists():
+            data = pd.read_csv(out_path)
+        else:
+            data = pd.DataFrame()
+
+        new_data = pd.DataFrame.from_dict([out_data])
+
+        # Output run results
+        data = pd.concat([data, new_data])
+
+        # Index set to True leads to a redundant column at next read
+        data.to_csv(out_path, index=False)
 
 
 class PlotProcessor:

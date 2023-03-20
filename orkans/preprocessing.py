@@ -3,6 +3,7 @@ import numpy as np
 from datetime import datetime
 from pysteps.utils import transformation, to_rainrate
 from scipy import stats
+from loguru import logger
 
 
 class PreProcessor:
@@ -22,8 +23,7 @@ class PreProcessor:
         # Check if data is in correct units
         unit = self.metadata["unit"]
         if not unit == self._unit:
-            # TODO: Add warning that converting units to rainrate
-            # Need to get logger to here.
+            logger.warning(f"Converting data from '{unit}' to '{self._unit}'")
             self.data, self.metadata = to_rainrate(self.data, self.metadata)
 
     @property

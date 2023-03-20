@@ -1,20 +1,14 @@
-import sys
 import pytest
+import yaml
 
-from pathlib import Path
-
-try:
-    from orkans import nowcast
-except ModuleNotFoundError:
-    LIB_DIR = (Path(".") / "..").resolve().as_posix()
-    sys.path.append(LIB_DIR)
-    from orkans import nowcast
+from orkans import nowcast
+from orkans import TEST_CFG_DIR
 
 
-def get_test_config_path():
-    cfg_rel_path = Path("tests") / "_test_configs" / "config.yaml"
-    cfg_abs_path = cfg_rel_path.resolve()
-    return cfg_abs_path.as_posix()
+def get_test_config():
+    cfg_abs_path = (TEST_CFG_DIR / "config.yaml").resolve()
+    with open(cfg_abs_path.as_posix(), "r") as file:
+        return yaml.safe_load(file)
 
 
 def check_results(res, ref, thr):
@@ -28,8 +22,8 @@ def check_results(res, ref, thr):
 
 def test_pysteps_steps():
 
-    cfg_path = get_test_config_path()
-    res = nowcast.run("steps", cfg_path)
+    cfg = get_test_config()
+    res = nowcast.run("steps", cfg, test=True)
 
     ref = {
         "seed": 2023,
@@ -55,8 +49,8 @@ def test_pysteps_steps():
 
 def test_pysteps_anvil():
 
-    cfg_path = get_test_config_path()
-    res = nowcast.run("anvil", cfg_path)
+    cfg = get_test_config()
+    res = nowcast.run("anvil", cfg, test=True)
 
     ref = {
         "id": "7b01554447f0",
@@ -79,8 +73,8 @@ def test_pysteps_anvil():
 
 def test_pysteps_sseps():
 
-    cfg_path = get_test_config_path()
-    res = nowcast.run("sseps", cfg_path)
+    cfg = get_test_config()
+    res = nowcast.run("sseps", cfg, test=True)
 
     ref = {
         "seed": 2023,
@@ -106,8 +100,8 @@ def test_pysteps_sseps():
 
 def test_pysteps_linda():
 
-    cfg_path = get_test_config_path()
-    res = nowcast.run("linda", cfg_path)
+    cfg = get_test_config()
+    res = nowcast.run("linda", cfg, test=True)
 
     ref = {
         "seed": 2023,

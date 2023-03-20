@@ -1,36 +1,22 @@
 import time
-import sys
-import os
 
-import pandas as pd
-
-from pathlib import Path
 from loguru import logger
 from pysteps import nowcasts
 from pysteps.motion.lucaskanade import dense_lucaskanade
 
-try:
-    from orkans import utils
-except ModuleNotFoundError:
-    LIB_DIR = (Path(".") / "..").resolve().as_posix()
-    sys.path.append(LIB_DIR)
-finally:
-    from orkans import utils
-    from orkans import OUT_DIR, LOG_PATH, PRECIP_RATIO_THR
-    from orkans.preprocessing import PreProcessor
-    from orkans.postprocessing import PostProcessor
-
+from orkans import PRECIP_RATIO_THR
+from orkans import utils
+from orkans.postprocessing import PostProcessor
+from orkans.preprocessing import PreProcessor
 
 # TODO Run and batch run
 # TODO Check if run already exists
-# TODO Setup pytest and add it to Github Actions
-# TODO Run queue
 
 
 @logger.catch
 def run(
     model_name: str,
-    cfg_path: Path = None,
+    cfg: dict,
     test: bool = False,
 ):
 
@@ -39,9 +25,6 @@ def run(
     out_data = {}
 
     logger.info("Run started.")
-
-    # Load configuration file
-    cfg = utils.load_config(cfg_path)
 
     # Number of timesteps to use for velocity field estimation
     n_vsteps = utils.determine_velocity_step_count(model_name, cfg)
@@ -161,9 +144,6 @@ def run(
     scores = post_proc.calc_scores(0.1, cfg, lead_idx=0)
     out_data |= scores
 
-    if not test:
-        post_proc.save_plots()
-
     out_data["nwc_run_time"] = tend_nwc - tstart_nwc
 
     logger.info(f"Ran '{model_name}' model")
@@ -173,43 +153,19 @@ def run(
     tend = time.perf_counter()
     out_data["total_run_time"] = tend - tstart
 
+    if not test:
+        post_proc.save_plots()
+        post_proc.save_results(model_name, out_data)
+
     return out_data
 
 
 if __name__ == "__main__":
 
-    logger.add(
-        LOG_PATH,
-        backtrace=True,
-        diagnose=True,
-        rotation="1 day",
-        retention="1 week",
-    )
+    # steps, sseps, anvil, linda
+    model_name = "steps"
 
-    model_name = "steps"  # steps, sseps, anvil, linda
+    # Load configuration file
+    cfg = utils.load_config()
 
-    fname = f"nowcasts_{model_name}.csv"
-
-    if not OUT_DIR.exists():
-        os.mkdir(OUT_DIR)
-
-    out_path = OUT_DIR / fname
-
-    if out_path.exists():
-        data = pd.read_csv(out_path)
-    else:
-        data = pd.DataFrame()
-
-    out_data = run(model_name)
-
-    if not out_data:
-        logger.error("Nowcast didn't return anything. Exiting.")
-        exit()
-
-    new_data = pd.DataFrame.from_dict([out_data])
-
-    # Output run results
-    data = pd.concat([data, new_data])
-
-    # Index set to True leads to a redundant column at next read
-    data.to_csv(out_path, index=False)
+    run(model_name, cfg)
