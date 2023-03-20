@@ -9,9 +9,6 @@ from orkans import utils
 from orkans.postprocessing import PostProcessor
 from orkans.preprocessing import PreProcessor
 
-# TODO Run and batch run
-# TODO Check if run already exists
-
 
 @logger.catch
 def run(
@@ -155,7 +152,8 @@ def run(
 
     if not test:
         post_proc.save_plots()
-        post_proc.save_results(model_name, out_data)
+
+    out_data["nwc_model"] = model_name
 
     return out_data
 

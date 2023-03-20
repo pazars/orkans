@@ -1,6 +1,8 @@
 import hashlib
 from datetime import datetime
 from pathlib import Path
+from copy import deepcopy
+from typing import Union
 
 import numpy as np
 import yaml
@@ -34,22 +36,38 @@ def load_config(cfg_path: Path = None) -> dict:
     return cfg
 
 
-def load_and_parse_config(cfg_path: Path = None) -> list[dict]:
-    """Load and parse config for bath runs.
+def load_batch_config(
+    model_name: str, cfg_path: Path = None
+) -> Union[list[dict], None]:
+    """Load and parse config for batch runs.
 
     Recongizes which parameters need multiple runs.
     Prepares configurations for each run.
 
     Args:
+        model_name (str): pysteps nowcast model name
         cfg_path (Path, optional): Configuration file path. Defaults to None.
 
     Returns:
         dict: Configuration file loaded as a dictionary object.
     """
     # TODO
+    cfgs = []
     raw_cfg = load_config(cfg_path)
 
-    return [raw_cfg]
+    batch_cfg = raw_cfg["batch"][model_name]
+
+    # Return if batch run not defined
+    if not batch_cfg:
+        return None
+
+    for key, values in batch_cfg.items():
+        for value in values:
+            new_cfg = deepcopy(raw_cfg)
+            new_cfg["model"][model_name]["manual"][key] = value
+            cfgs.append(new_cfg)
+
+    return cfgs
 
 
 def load_rainrate_data(cfg: dict, n_vsteps: int) -> tuple[np.ndarray, dict]:

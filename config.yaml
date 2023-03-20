@@ -139,6 +139,20 @@ model:
       mask_kwargs: null
       measure_time: False
 
+batch:
+  steps:
+    n_ens_members:
+      - 20
+      - 24
+      - 28
+  anvil:
+    ar_window_radius:
+      - 25
+      - 50
+      - 75
+  linda: null
+  sseps: null
+
 metrics:
   # https://pysteps.readthedocs.io/en/latest/generated/pysteps.verification.detcontscores.det_cont_fct.html#pysteps.verification.detcontscores.det_cont_fct
   deterministic:
