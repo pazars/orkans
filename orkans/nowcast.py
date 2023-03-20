@@ -144,9 +144,6 @@ def run(
     scores = post_proc.calc_scores(0.1, cfg, lead_idx=0)
     out_data |= scores
 
-    if not test:
-        post_proc.save_plots()
-
     out_data["nwc_run_time"] = tend_nwc - tstart_nwc
 
     logger.info(f"Ran '{model_name}' model")
@@ -156,7 +153,9 @@ def run(
     tend = time.perf_counter()
     out_data["total_run_time"] = tend - tstart
 
-    post_proc.save_results(model_name, out_data)
+    if not test:
+        post_proc.save_plots()
+        post_proc.save_results(model_name, out_data)
 
     return out_data
 

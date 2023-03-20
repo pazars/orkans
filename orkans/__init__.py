@@ -15,3 +15,6 @@ PLOT_DIR = OUT_DIR / "plots"
 
 # Precipitation ratio threshold
 PRECIP_RATIO_THR = 0.25
+
+# Test config directory
+TEST_CFG_DIR = Path(".") / "orkans" / "tests" / "_test_configs"
