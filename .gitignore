@@ -17,3 +17,7 @@ nowcasts_*.csv
 
 # Pytest cache
 .pytest_cache
+
+# Jupyter notebooks (result exploration)
+notebooks
+*.ipynb

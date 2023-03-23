@@ -67,7 +67,7 @@ if __name__ == "__main__":
             nwc_args += list(itertools.product([model_name], cfgs))
     else:
         cfg = utils.load_config()
-        nwc_args = itertools.product(user_model_names, cfg)
+        nwc_args = itertools.product(user_model_names, [cfg])
 
     tstart = time.perf_counter()
     with Pool(processes=args.nproc) as pool:
@@ -96,12 +96,11 @@ if __name__ == "__main__":
 
     for result in results:
 
+        if not result:
+            continue
+
         model_name = result.pop("nwc_model")
         data = model_data_map[model_name]
-
-        if "id" in data and result["id"] in data["id"].values:
-            logger.warning(f"Results for '{result['id']}' already exist. Ignoring.")
-            continue
 
         new_data = pd.DataFrame.from_dict([result])
 
@@ -111,7 +110,9 @@ if __name__ == "__main__":
         model_data_map[model_name] = data
 
     # Index set to True leads to a redundant column at next read
-    for data in model_data_map.values():
+    for model_name, data in model_data_map.items():
+        fname = f"nowcasts_{model_name}.csv"
+        out_path = OUT_DIR / fname
         data.to_csv(out_path, index=False)
 
     tend = time.perf_counter()

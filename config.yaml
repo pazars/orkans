@@ -82,7 +82,7 @@ model:
     # https://pysteps.readthedocs.io/en/latest/generated/pysteps.nowcasts.linda.forecast.html
     manual:
       feature_method: blob
-      max_num_features: 15
+      max_num_features: 25
       feature_kwargs: null
       ari_order: 1
       kernel_type: anisotropic
@@ -91,7 +91,7 @@ model:
       acf_window_radius: null
       extrap_method: semilagrangian
       extrap_kwargs: null
-      add_perturbations: False
+      add_perturbations: True
       pert_thrs:
         - 0.5
         - 1.0
@@ -142,16 +142,66 @@ model:
 batch:
   steps:
     n_ens_members:
-      - 20
-      - 24
-      - 28
+      - 5
+      - 10
+      - 15
+    # n_cascade_levels:
+    #   - 4
+    #   - 6
+    #   - 8
+    #   - 10
+    # bandpass_filter_method:
+    #   - "gaussian"
+    #   - "uniform"
+    # noise_method:
+    #   - "parametric"
+    #   - "nonparametric"
+    #   - "ssft"
+    #   - "nested"
+    # noise_stddev_adj:
+    #   - "auto"
+    #   - "fixed"
+    #   - null
+    # ar_order:
+    #   - 1
+    #   - 2
+    # vel_pert_method:
+    #   - "bps"
+    #   - null
+    # conditional:
+    #   - true
+    #   - false
+    # mask_method:
+    #   - "obs"
+    #   - "sprog"
+    #   - "incremental"
+    # probmatching_method:
+    #   - "cdf"
+    #   - "mean"
+    # domain:
+    #   - "spatial"
+    #   - spectral
   anvil:
     ar_window_radius:
       - 25
       - 50
       - 75
-  linda: null
-  sseps: null
+  linda:
+    n_ens_members:
+      - 20
+      - 24
+      - 28
+      - 32
+      - 36
+      - 40
+      - 44
+      - 48
+      - 52
+  sseps:
+    n_ens_members:
+      - 5
+      - 10
+      - 15
 
 metrics:
   # https://pysteps.readthedocs.io/en/latest/generated/pysteps.verification.detcontscores.det_cont_fct.html#pysteps.verification.detcontscores.det_cont_fct
