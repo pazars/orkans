@@ -1,14 +1,16 @@
 # Log file path for loguru
 from pathlib import Path
 
+ROOT_DIR = Path(".")
+
 # Configuration file path
-CFG_PATH = (Path(".") / "config.yaml").resolve()
+CFG_PATH = (ROOT_DIR / "config.yaml").resolve()
 
 # Log file path
-LOG_PATH = (Path(".") / "logs" / "log.txt").resolve()
+LOG_PATH = (ROOT_DIR / "logs" / "log.txt").resolve()
 
 # Result path
-OUT_DIR = (Path(".") / "results").resolve()
+OUT_DIR = (ROOT_DIR / "results").resolve()
 
 # Result plot directory
 PLOT_DIR = OUT_DIR / "plots"
@@ -17,4 +19,4 @@ PLOT_DIR = OUT_DIR / "plots"
 PRECIP_RATIO_THR = 0.25
 
 # Test config directory
-TEST_CFG_DIR = Path(".") / "orkans" / "tests" / "_test_configs"
+TEST_CFG_DIR = ROOT_DIR / "orkans" / "tests" / "_test_configs"
