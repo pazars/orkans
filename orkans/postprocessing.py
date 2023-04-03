@@ -6,7 +6,7 @@ from loguru import logger
 from pysteps import verification
 from pysteps.postprocessing import ensemblestats
 from pysteps.utils import transformation
-from pysteps.verification import detcontscores, ensscores
+from pysteps.verification import detcontscores, ensscores, spatialscores
 from pysteps.visualization import plot_precip_field
 from scipy import stats
 from datetime import datetime
@@ -40,6 +40,9 @@ class PostProcessor:
 
         metrics = cfg["metrics"]["deterministic"]
         thrs = cfg["general"]["thresholds"]
+        fss_scales = cfg["general"]["fss_scales"]
+
+        leadtime = self.plots._calculate_leadtime(lead_idx)
 
         results = []
 
@@ -47,10 +50,14 @@ class PostProcessor:
             res = {"nwc_type": "deterministic"}
             score_map = detcontscores.det_cont_fct(pred, obs, metrics, thr=thr)
 
-            leadtime = self.plots._calculate_leadtime(lead_idx)
             for metric, score in score_map.items():
                 new_metric_name = f"{metric}_T{int(leadtime)}_THR{thr}"
                 res[new_metric_name] = score
+
+            for scale in fss_scales:
+                fss_metric_name = f"fss_thr{thr}_s{scale}"
+                score = spatialscores.fss(pred, obs, thr, scale)
+                res[fss_metric_name] = score
 
             results.append(res)
 
@@ -63,8 +70,10 @@ class PostProcessor:
 
         mean_metrics = cfg["metrics"]["ensemble"]["mean"]
         thrs = cfg["general"]["thresholds"]
+        fss_scales = cfg["general"]["fss_scales"]
 
         leadtime = self.plots._calculate_leadtime(lead_idx)
+        ens_mean = np.mean(pred, axis=0)
 
         results = []
 
@@ -75,6 +84,11 @@ class PostProcessor:
                 score = ensscores.ensemble_skill(pred, obs, metric, thr=thr)
                 new_metric_name = f"{metric}_T{int(leadtime)}_THR{thr}"
                 res[new_metric_name] = score
+
+            for scale in fss_scales:
+                fss_metric_name = f"fss_tstep{lead_idx}_thr{thr}_s{scale}"
+                score = spatialscores.fss(ens_mean, obs, thr, scale)
+                res[fss_metric_name] = score
 
             # Compute area under ROC
             roc_metric_name = f"roc_area_T{int(leadtime)}_THR{thr}"

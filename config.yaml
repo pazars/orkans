@@ -5,6 +5,7 @@ general:
   # Date, time, and its format from which to begin forecast
   datetime_fmt: "%Y%m%d%H%M"
   datetime: 202101061200
+  # datetime: 202208201600
 
   # Number of forecast timesteps
   n_leadtimes: 8
@@ -22,6 +23,11 @@ general:
     - 0.1
     - 0.5
     - 1.0
+
+  fss_scales:
+    - 2
+    - 8
+    - 20
 
 model:
   # Default model optional parameter values (can be overwritten in code)
@@ -204,6 +210,8 @@ batch:
       - 15
 
 metrics:
+  # Calculate Fraction Skill Score (FSS) by default for all threshold and scale values
+  # These metrics are extra
   # https://pysteps.readthedocs.io/en/latest/generated/pysteps.verification.detcontscores.det_cont_fct.html#pysteps.verification.detcontscores.det_cont_fct
   deterministic:
     - MAE # Mean Absolute Error
