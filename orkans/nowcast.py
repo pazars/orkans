@@ -138,8 +138,10 @@ def run(
     # If a model uses different units as input, convert before moving on!
 
     post_proc = PostProcessor(run_id, rainrate_valid, nwc, metadata_nwc)
-    scores = post_proc.calc_scores(0.1, cfg, lead_idx=0)
-    out_data |= scores
+
+    scores = post_proc.calc_scores(cfg, lead_idx=0)
+    for score in scores:
+        out_data |= score
 
     out_data["nwc_run_time"] = tend_nwc - tstart_nwc
 
@@ -151,7 +153,7 @@ def run(
     out_data["total_run_time"] = tend - tstart
 
     if not test:
-        post_proc.save_plots()
+        post_proc.save_plots(cfg, model_name)
 
     out_data["nwc_model"] = model_name
 

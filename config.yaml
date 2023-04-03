@@ -1,27 +1,27 @@
 general:
   # Data source settings in pystepsrc configuration file
-  data_source: "opera"
-  # Data start time
-  start_time: 201808241900
-  # Pysteps assumes data is stored in a subdirectory of the data_source directory
-  # defined in .pystepsrc, and that this subdirectory is of the format start_fmt.
-  # If the data is directly in data_source directory, leave start_fmt as "".
-  start_fmt: "%Y%m%d%H%M"
-  # Nowcast model to use (model settings in model section)
-  model: steps
+  data_source: "opera_meteo_france"
+
+  # Date, time, and its format from which to begin forecast
+  datetime_fmt: "%Y%m%d%H%M"
+  datetime: 202101061200
+
   # Number of forecast timesteps
-  n_leadtimes: 1
+  n_leadtimes: 8
+
   # Clip domain to coordinates (local)
   # To use whole domain, first entry should be null
   domain_box:
-    - 2.52e6
-    - 3.114e6
-    - -2.067e6
-    - -1.37e6
-  # If verify is true, verifies forecasted steps with reference data
-  # Useful for model tuning
-  # This works only when working with past data
-  verify: true
+    - 2.284e6
+    - 2.622e6
+    - -1.955e6
+    - -1.664e6
+
+  # Precipitation thresholds to use for ensemble metrics and plots
+  thresholds:
+    - 0.1
+    - 0.5
+    - 1.0
 
 model:
   # Default model optional parameter values (can be overwritten in code)

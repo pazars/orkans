@@ -84,8 +84,8 @@ def load_rainrate_data(cfg: dict, n_vsteps: int) -> tuple[np.ndarray, dict]:
     gen_cfg = cfg["general"]
 
     data_source = gen_cfg["data_source"]
-    start_time = str(gen_cfg["start_time"])
-    start_fmt = str(gen_cfg["start_fmt"])
+    start_time = str(gen_cfg["datetime"])
+    start_fmt = str(gen_cfg["datetime_fmt"])
     date = datetime.strptime(start_time, start_fmt)
 
     # Load data source config
@@ -97,10 +97,8 @@ def load_rainrate_data(cfg: dict, n_vsteps: int) -> tuple[np.ndarray, dict]:
     importer_kwargs = rcparams.data_sources[data_source]["importer_kwargs"]
     timestep = rcparams.data_sources[data_source]["timestep"]
 
-    n_leadtimes = 0
-    # Load forecast reference data (reanalysis)
-    if gen_cfg["verify"]:
-        n_leadtimes = gen_cfg["n_leadtimes"]
+    # Load forecast reference data
+    n_leadtimes = gen_cfg["n_leadtimes"]
 
     # Find the radar files in the archive
     filenames = io.find_by_date(

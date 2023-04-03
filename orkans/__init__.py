@@ -12,11 +12,42 @@ LOG_PATH = (ROOT_DIR / "logs" / "log.txt").resolve()
 # Result path
 OUT_DIR = (ROOT_DIR / "results").resolve()
 
+# Result path
+EVENT_DIR = (ROOT_DIR / "events").resolve()
+
 # Result plot directory
 PLOT_DIR = OUT_DIR / "plots"
 
 # Precipitation ratio threshold
-PRECIP_RATIO_THR = 0.25
+PRECIP_RATIO_THR = 0.15
 
 # Test config directory
 TEST_CFG_DIR = ROOT_DIR / "orkans" / "tests" / "_test_configs"
+
+REGIONS = [
+    {
+        "id": 1,
+        "description": "Baltics",
+        "coords": (2.52e6, 3.114e6, -2.067e6, -1.37e6),
+    },
+    {
+        "id": 2,
+        "description": "Baltic sea Nordic",
+        "coords": (2.285e6, 2.947e6, -1.641e6, -1.044e6),
+    },
+    {
+        "id": 3,
+        "description": "Baltic sea Kurzeme",
+        "coords": (2.284e6, 2.622e6, -1.955e6, -1.664e6),
+    },
+    {
+        "id": 4,
+        "description": "N Poland",
+        "coords": (2.324e6, 2.767e6, -2.453e6, -1.993e6),
+    },
+    {
+        "id": 5,
+        "description": "Sweden, Finland",
+        "coords": (2.214e6, 2.826e6, -1.131e6, -7.368e5),
+    },
+]

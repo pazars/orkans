@@ -9,6 +9,7 @@ from pysteps.utils import transformation
 from pysteps.verification import detcontscores, ensscores
 from pysteps.visualization import plot_precip_field
 from scipy import stats
+from datetime import datetime
 
 from orkans import OUT_DIR, PLOT_DIR
 from orkans.preprocessing import find_best_boxcox_lambda
@@ -25,54 +26,69 @@ class PostProcessor:
 
         self.plots = PlotProcessor(rid, obs, pred, metadata)
 
-    def calc_scores(self, threshold: float, cfg: dict, lead_idx: int) -> dict:
+    def calc_scores(self, cfg: dict, lead_idx: int) -> dict:
 
         if self.is_ensemble:
-            return self.calc_ens_scores(cfg, lead_idx, thr=threshold)
+            return self.calc_ens_scores(cfg, lead_idx)
         else:
-            return self.calc_det_scores(cfg, lead_idx, thr=threshold)
+            return self.calc_det_scores(cfg, lead_idx)
 
-    def calc_det_scores(self, cfg: dict, lead_idx: int, thr: float = 0.1) -> dict:
+    def calc_det_scores(self, cfg: dict, lead_idx: int) -> dict:
 
         pred = self.pred[lead_idx, :, :]
         obs = self.obs[lead_idx, :, :]
 
-        res = {"nwc_type": "deterministic"}
         metrics = cfg["metrics"]["deterministic"]
-        score_map = detcontscores.det_cont_fct(pred, obs, metrics, thr=thr)
+        thrs = cfg["general"]["thresholds"]
 
-        leadtime = self.plots._calculate_leadtime(lead_idx)
-        for metric, score in score_map.items():
-            new_metric_name = f"{metric}_T{int(leadtime)}_THR{thr}"
-            res[new_metric_name] = score
+        results = []
 
-        return res
+        for thr in thrs:
+            res = {"nwc_type": "deterministic"}
+            score_map = detcontscores.det_cont_fct(pred, obs, metrics, thr=thr)
 
-    def calc_ens_scores(self, cfg: dict, lead_idx: int, thr: float = 0.1) -> dict:
+            leadtime = self.plots._calculate_leadtime(lead_idx)
+            for metric, score in score_map.items():
+                new_metric_name = f"{metric}_T{int(leadtime)}_THR{thr}"
+                res[new_metric_name] = score
+
+            results.append(res)
+
+        return results
+
+    def calc_ens_scores(self, cfg: dict, lead_idx: int) -> dict:
 
         pred = self.pred[:, lead_idx, :, :]
         obs = self.obs[lead_idx, :, :]
 
-        res = {"nwc_type": "ensemble"}
         mean_metrics = cfg["metrics"]["ensemble"]["mean"]
+        thrs = cfg["general"]["thresholds"]
 
         leadtime = self.plots._calculate_leadtime(lead_idx)
-        for metric in mean_metrics:
-            score = ensscores.ensemble_skill(pred, obs, metric, thr=thr)
-            new_metric_name = f"{metric}_T{int(leadtime)}_THR{thr}"
-            res[new_metric_name] = score
 
-        # Compute area under ROC
-        roc_metric_name = f"roc_area_T{int(leadtime)}_THR{thr}"
-        res[roc_metric_name] = self.plots.roc_curve(lead_idx, thr, area=True)
+        results = []
 
-        return res
+        for thr in thrs:
+            res = {"nwc_type": "ensemble"}
+            for metric in mean_metrics:
 
-    def save_plots(self, lead_idx: int = 0) -> None:
+                score = ensscores.ensemble_skill(pred, obs, metric, thr=thr)
+                new_metric_name = f"{metric}_T{int(leadtime)}_THR{thr}"
+                res[new_metric_name] = score
+
+            # Compute area under ROC
+            roc_metric_name = f"roc_area_T{int(leadtime)}_THR{thr}"
+            res[roc_metric_name] = self.plots.roc_curve(lead_idx, thr, area=True)
+
+            results.append(res)
+
+        return results
+
+    def save_plots(self, cfg: dict, mname: str, lead_idx: int = 0) -> None:
         if self.is_ensemble:
-            self.plots.save_all_ensemble_plots(lead_idx)
+            self.plots.save_all_ensemble_plots(cfg, mname, lead_idx)
         else:
-            self.plots.save_all_deterministic_plots(lead_idx)
+            self.plots.save_all_deterministic_plots(cfg, mname, lead_idx)
 
 
 class PlotProcessor:
@@ -107,7 +123,7 @@ class PlotProcessor:
         else:
             return tstep * (self.data.shape[0] - lead_idx + 1)
 
-    def rank_histogram(self, lead_idx: int, thr: float = 0.1):
+    def rank_histogram(self, lead_idx: int, thr: float = 0.1, ext="png"):
         rankhist = verification.rankhist_init(self.data.shape[0], thr)
         nowcast = self.data[:, lead_idx, :, :]
         reference = self.ref_data[lead_idx, :, :]
@@ -118,11 +134,17 @@ class PlotProcessor:
 
         leadtime = int(self._calculate_leadtime(lead_idx))
         ax.set_title(f"Rank histogram (+{leadtime} min)")
-        thr_parts = str(thr).split(".")
-        fname = f"rank-histogram-T{leadtime}-thr{thr_parts[0]}_{thr_parts[1]}.svg"
-        plt.savefig(self.plot_dir / fname, format="svg")
 
-    def reliability_diagram(self, lead_idx: int, thr: float = 0.1):
+        try:
+            thr_parts = str(thr).split(".")
+            thr_string = f"{thr_parts[0]}_{thr_parts[1]}"
+        except IndexError:
+            thr_string = str(thr)
+
+        fname = f"rank-histogram-T{leadtime}-thr{thr_string}.{ext}"
+        plt.savefig(self.plot_dir / fname, format=ext)
+
+    def reliability_diagram(self, lead_idx: int, thr: float = 0.1, ext="png"):
         reldiag = verification.reldiag_init(thr)
         nowcast = self.data[:, lead_idx, :, :]
         reference = self.ref_data[lead_idx, :, :]
@@ -133,11 +155,17 @@ class PlotProcessor:
         verification.plot_reldiag(reldiag, ax)
         leadtime = int(self._calculate_leadtime(lead_idx))
         ax.set_title(f"Reliability diagram (T+{leadtime}min)")
-        thr_parts = str(thr).split(".")
-        fname = f"reliability-diagram-T{leadtime}-thr{thr_parts[0]}_{thr_parts[1]}.svg"
-        plt.savefig(self.plot_dir / fname, format="svg")
 
-    def roc_curve(self, lead_idx: int, thr: float = 0.1, area: bool = False):
+        try:
+            thr_parts = str(thr).split(".")
+            thr_string = f"{thr_parts[0]}_{thr_parts[1]}"
+        except IndexError:
+            thr_string = str(thr)
+
+        fname = f"reliability-diagram-T{leadtime}-thr{thr_string}.{ext}"
+        plt.savefig(self.plot_dir / fname, format=ext)
+
+    def roc_curve(self, lead_idx: int, thr: float = 0.1, area: bool = False, ext="png"):
         roc = verification.ROC_curve_init(thr, n_prob_thrs=10)
         nowcast = self.data[:, lead_idx, :, :]
         reference = self.ref_data[lead_idx, :, :]
@@ -153,9 +181,15 @@ class PlotProcessor:
 
         leadtime = int(self._calculate_leadtime(lead_idx))
         ax.set_title(f"ROC; T+{leadtime} min; threshold={thr}")
-        thr_parts = str(thr).split(".")
-        fname = f"roc-T{leadtime}-thr{thr_parts[0]}_{thr_parts[1]}.svg"
-        plt.savefig(self.plot_dir / fname, format="svg")
+
+        try:
+            thr_parts = str(thr).split(".")
+            thr_string = f"{thr_parts[0]}_{thr_parts[1]}"
+        except IndexError:
+            thr_string = str(thr)
+
+        fname = f"roc-T{leadtime}-thr{thr_string}.{ext}"
+        plt.savefig(self.plot_dir / fname, format=ext)
 
     def _plot_distribution(self, data, labels, skw):
 
@@ -233,40 +267,78 @@ class PlotProcessor:
         plot_precip_field(self.ref_data[-1, :, :], geodata=self.metadata)
         plt.savefig(self.plot_dir / "last_obs_precip_field.svg", format="svg")
 
-    def save_nowcast_field(self, lead_idx: int, ensemble=False):
+    def save_det_nowcast_field(self, cfg, mname, fext="png"):
         """pysteps plot_precip_field wrapper for nowcast timesteps."""
-        leadtime = int(self._calculate_leadtime(lead_idx))
-        title = f"T+{leadtime}"
 
-        if ensemble:
-            ensemble_mean = np.mean(self.data[:, lead_idx, :, :], axis=0)
+        n_tsteps = self.data.shape[0]
+
+        # Format nowcast start time
+        gen_cfg = cfg["general"]
+        raw_date = str(gen_cfg["datetime"])
+        date = datetime.strptime(raw_date, gen_cfg["datetime_fmt"])
+        date_str = date.strftime("%Y-%m-%d %H:%M")
+
+        for lead_idx in range(n_tsteps):
+
+            leadtime = int(self._calculate_leadtime(lead_idx))
+            lead_data = self.data[lead_idx, :, :]
+
+            title = f"{mname.upper()} DET: {date_str} + {leadtime}min"
+
+            plot_precip_field(lead_data, geodata=self.metadata, title=title)
+
+            fname = f"nwc_{mname}_det_{raw_date}_T{leadtime}.{fext}"
+            plt.savefig(self.plot_dir / fname, format=fext)
+            plt.clf()
+
+    def save_ensemble_nowcast_field(self, cfg, mname, fext="png"):
+        """pysteps plot_precip_field wrapper for nowcast timesteps."""
+
+        n_tsteps = self.data.shape[1]
+
+        # Format nowcast start time
+        gen_cfg = cfg["general"]
+        raw_date = str(gen_cfg["datetime"])
+        date = datetime.strptime(raw_date, gen_cfg["datetime_fmt"])
+        date_str = date.strftime("%Y-%m-%d %H:%M")
+
+        for lead_idx in range(n_tsteps):
+
+            leadtime = int(self._calculate_leadtime(lead_idx))
+            lead_data = self.data[:, lead_idx, :, :]
+
+            title = f"{mname.upper()} ENS: {date_str} + {leadtime}min"
+
+            ensemble_mean = np.mean(lead_data, axis=0)
             plot_precip_field(ensemble_mean, geodata=self.metadata, title=title)
-        else:
-            plot_precip_field(
-                self.data[lead_idx, :, :], geodata=self.metadata, title=title
-            )
 
-        fname = f"nowcast_precip_field_T{leadtime}min.svg"
-        plt.savefig(self.plot_dir / fname, format="svg")
+            fname = f"nwc_{mname}_ens_{raw_date}_T{leadtime}.{fext}"
+            plt.savefig(self.plot_dir / fname, format=fext)
+            plt.clf()
 
-    def save_all_ensemble_plots(self, lead_idx: int):
+    def save_all_ensemble_plots(self, cfg: dict, mname: str, lead_idx: int):
 
-        self.save_transform_comparison()
-        plt.clf()
-        self.save_last_precip_field()
-        plt.clf()
-        self.save_nowcast_field(lead_idx, ensemble=True)
-        plt.clf()
-        self.rank_histogram(lead_idx)
-        plt.clf()
-        self.reliability_diagram(lead_idx)
-        plt.clf()
-        self.roc_curve(lead_idx)
-
-    def save_all_deterministic_plots(self, lead_idx: int):
+        thrs = cfg["general"]["thresholds"]
 
         self.save_transform_comparison()
         plt.clf()
         self.save_last_precip_field()
         plt.clf()
-        self.save_nowcast_field(lead_idx)
+        self.save_ensemble_nowcast_field(cfg, mname)
+        plt.clf()
+
+        for thr in thrs:
+            self.roc_curve(lead_idx, thr=thr)
+            plt.clf()
+            self.rank_histogram(lead_idx, thr=thr)
+            plt.clf()
+            self.reliability_diagram(lead_idx, thr=thr)
+            plt.clf()
+
+    def save_all_deterministic_plots(self, cfg: dict, mname: str, lead_idx: int):
+
+        self.save_transform_comparison()
+        plt.clf()
+        self.save_last_precip_field()
+        plt.clf()
+        self.save_det_nowcast_field(cfg, mname)
