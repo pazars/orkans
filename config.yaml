@@ -4,8 +4,8 @@ general:
 
   # Date, time, and its format from which to begin forecast
   datetime_fmt: "%Y%m%d%H%M"
-  datetime: 202101061200
-  # datetime: 202208201600
+  # datetime: 202101061200
+  datetime: 202208201600
 
   # Number of forecast timesteps
   n_leadtimes: 8
