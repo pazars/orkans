@@ -166,6 +166,7 @@ if __name__ == "__main__":
     model_name = "steps"
 
     # Load configuration file
-    cfg = utils.load_config()
+    cfgs = utils.load_config()
 
-    run(model_name, cfg)
+    for cfg in cfgs:
+        run(model_name, cfg)

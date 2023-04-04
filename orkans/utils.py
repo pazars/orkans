@@ -33,7 +33,17 @@ def load_config(cfg_path: Path = None) -> dict:
         cfg = yaml.safe_load(file)
 
     logger.info(f"Read config from {cfg_path.as_posix()}")
-    return cfg
+
+    if type(cfg["general"]["datetime"]) != list:
+        return [cfg]
+
+    date_cfgs = []
+    for date_time in cfg["general"]["datetime"]:
+        new_cfg = deepcopy(cfg)
+        new_cfg["general"]["datetime"] = date_time
+        date_cfgs.append(new_cfg)
+
+    return date_cfgs
 
 
 def load_batch_config(
@@ -51,21 +61,24 @@ def load_batch_config(
     Returns:
         dict: Configuration file loaded as a dictionary object.
     """
-    # TODO
     cfgs = []
-    raw_cfg = load_config(cfg_path)
+    raw_cfgs = load_config(cfg_path)
 
-    batch_cfg = raw_cfg["batch"][model_name]
+    # Raw configs differ only in datetime,
+    # so just pick batch properties from the first one
+    batch_cfg = raw_cfgs[0]["batch"][model_name]
 
     # Return if batch run not defined
     if not batch_cfg:
         return None
 
-    for key, values in batch_cfg.items():
-        for value in values:
-            new_cfg = deepcopy(raw_cfg)
-            new_cfg["model"][model_name]["manual"][key] = value
-            cfgs.append(new_cfg)
+    # Let's just pretend the triple for loop is not there
+    for raw_cfg in raw_cfgs:
+        for key, values in batch_cfg.items():
+            for value in values:
+                new_cfg = deepcopy(raw_cfg)
+                new_cfg["model"][model_name]["manual"][key] = value
+                cfgs.append(new_cfg)
 
     return cfgs
 

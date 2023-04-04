@@ -67,7 +67,7 @@ if __name__ == "__main__":
             nwc_args += list(itertools.product([model_name], cfgs))
     else:
         cfg = utils.load_config()
-        nwc_args = itertools.product(user_model_names, [cfg])
+        nwc_args = itertools.product(user_model_names, cfg)
 
     tstart = time.perf_counter()
     with Pool(processes=args.nproc) as pool:

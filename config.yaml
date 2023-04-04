@@ -4,11 +4,12 @@ general:
 
   # Date, time, and its format from which to begin forecast
   datetime_fmt: "%Y%m%d%H%M"
-  # datetime: 202101061200
-  datetime: 202208201600
+  datetime:
+    - 202206020045
+    - 202101061200
 
   # Number of forecast timesteps
-  n_leadtimes: 8
+  n_leadtimes: 1
 
   # Clip domain to coordinates (local)
   # To use whole domain, first entry should be null
@@ -70,7 +71,7 @@ model:
       kmperpixel: xpixelsize
       timestep: accutime
   anvil:
-    # https://pysteps.readthedocs.io/en/latest/generated/pysteps.nowcasts.steps.forecast.html
+    # https://pysteps.readthedocs.io/en/latest/generated/pysteps.nowcasts.anvil.forecast.html
     manual:
       rainrate: null
       n_cascade_levels: 8
@@ -151,47 +152,61 @@ batch:
       - 5
       - 10
       - 15
-    # n_cascade_levels:
-    #   - 4
-    #   - 6
-    #   - 8
-    #   - 10
-    # bandpass_filter_method:
-    #   - "gaussian"
-    #   - "uniform"
-    # noise_method:
-    #   - "parametric"
-    #   - "nonparametric"
-    #   - "ssft"
-    #   - "nested"
-    # noise_stddev_adj:
-    #   - "auto"
-    #   - "fixed"
-    #   - null
-    # ar_order:
-    #   - 1
-    #   - 2
-    # vel_pert_method:
-    #   - "bps"
-    #   - null
-    # conditional:
-    #   - true
-    #   - false
-    # mask_method:
-    #   - "obs"
-    #   - "sprog"
-    #   - "incremental"
-    # probmatching_method:
-    #   - "cdf"
-    #   - "mean"
-    # domain:
-    #   - "spatial"
-    #   - spectral
+      - 25
+      - 30
+      - 35
+    n_cascade_levels:
+      - 4
+      - 6
+      - 8
+      - 10
+    bandpass_filter_method:
+      - "gaussian"
+      - "uniform"
+    noise_method:
+      - "parametric"
+      - "nonparametric"
+      - "ssft"
+      - "nested"
+    noise_stddev_adj:
+      - "auto"
+      - "fixed"
+      - null
+    ar_order:
+      - 1
+      - 2
+    vel_pert_method:
+      - "bps"
+      - null
+    conditional:
+      - true
+      - false
+    mask_method:
+      - "obs"
+      - "sprog"
+      - "incremental"
+    probmatching_method:
+      - "cdf"
+      - "mean"
+    domain:
+      - "spatial"
+      - spectral
   anvil:
+    n_cascade_levels:
+      - 4
+      - 6
+      - 8
+      - 10
     ar_window_radius:
       - 25
       - 50
       - 75
+    r_vil_window_radius:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
   linda:
     n_ens_members:
       - 20
