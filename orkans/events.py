@@ -10,7 +10,7 @@ from pysteps import io
 from pysteps.utils import conversion, clip_domain
 
 if __name__ != "__main__":
-    from orkans import EVENT_DIR
+    from orkans import EVENT_DIR, REGIONS
 
     EVENT_FILE_PATH = EVENT_DIR / "events.csv"
 
@@ -82,20 +82,6 @@ def find_new_events(
     )
     dates = dates[dates > last_event]
 
-    # if dates.size == 0:
-    #     logger.info("No new events")
-    #     return 0
-
-    # new_data = process_new_events(dates[0], dates.size, new_data_src)
-    # data = pd.concat([data, new_data])
-    # new_events += dates.size
-    # newest_event = dates[-1]
-
-    # for fpath in file_paths:
-    #     event_str = fpath.stem.split("_")[-1]
-    #     event = datetime.strptime(event_str, fmt)
-    #     if event > last_event:
-
     ndates = dates.size
 
     for count, event in enumerate(dates):
@@ -164,62 +150,6 @@ def process_event(date: datetime, src: str):
         results["datetime"].append(date_str)
         results["region_id"].append(region["id"])
         results["max_rrate"].append(max_rate)
-
-    return pd.DataFrame.from_dict(results)
-
-
-def process_new_events(date: datetime, tsteps: int, src: str):
-
-    data_source = rcparams.data_sources[src]
-
-    root_path = data_source["root_path"]
-    path_fmt = data_source["path_fmt"]
-    fn_pattern = data_source["fn_pattern"]
-    fn_ext = data_source["fn_ext"]
-    importer_name = data_source["importer"]
-    importer_kwargs = data_source["importer_kwargs"]
-    timestep = data_source["timestep"]
-
-    # Find the input files from the archive
-    fns = io.archive.find_by_date(
-        date,
-        root_path,
-        path_fmt,
-        fn_pattern,
-        fn_ext,
-        timestep,
-        num_next_files=100,
-    )
-
-    # Read the radar composites
-    importer = io.get_method(importer_name, "importer")
-    # read data, quality rasters, metadata
-    R, _, metadata = io.read_timeseries(fns, importer, **importer_kwargs)
-
-    # Convert reflectivity to rain rate
-    rainrate, metadata = conversion.to_rainrate(R, metadata)
-
-    results = {
-        "datetime": [],
-        "region_id": [],
-        "max_rrate": [],
-    }
-
-    date_str = date.strftime("%Y-%m-%d %H:%M")
-
-    for region in REGIONS:
-        # rrate_copy = deepcopy(rainrate)
-        rrate_region, _ = clip_domain(rainrate, metadata, extent=region["coords"])
-
-        for tstep in range(tsteps):
-            rr_2d = rrate_region[tstep, :, :]
-            # Because there can be a few very large values that don't make sense
-            # take 99.9th percentile value as max rainrate.
-            max_rate = np.nanpercentile(rr_2d[rr_2d > 0], 99.9)
-
-            results["datetime"].append(date_str)
-            results["region_id"].append(region["id"])
-            results["max_rrate"].append(max_rate)
 
     return pd.DataFrame.from_dict(results)
 
