@@ -9,6 +9,7 @@ __pycache__
 
 # Results
 results
+results_*
 nowcasts.csv
 nowcasts_*.csv
 
@@ -17,7 +18,3 @@ nowcasts_*.csv
 
 # Pytest cache
 .pytest_cache
-
-# Jupyter notebooks (result exploration)
-notebooks
-*.ipynb

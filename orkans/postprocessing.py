@@ -51,11 +51,11 @@ class PostProcessor:
             score_map = detcontscores.det_cont_fct(pred, obs, metrics, thr=thr)
 
             for metric, score in score_map.items():
-                new_metric_name = f"{metric}_T{int(leadtime)}_THR{thr}"
+                new_metric_name = f"metric_{metric}_T{int(leadtime)}_THR{thr}"
                 res[new_metric_name] = score
 
             for scale in fss_scales:
-                fss_metric_name = f"fss_thr{thr}_s{scale}"
+                fss_metric_name = f"metric_fss_thr{thr}_s{scale}"
                 score = spatialscores.fss(pred, obs, thr, scale)
                 res[fss_metric_name] = score
 
@@ -82,16 +82,16 @@ class PostProcessor:
             for metric in mean_metrics:
 
                 score = ensscores.ensemble_skill(pred, obs, metric, thr=thr)
-                new_metric_name = f"{metric}_T{int(leadtime)}_THR{thr}"
+                new_metric_name = f"metric_{metric}_T{int(leadtime)}_THR{thr}"
                 res[new_metric_name] = score
 
             for scale in fss_scales:
-                fss_metric_name = f"fss_tstep{lead_idx}_thr{thr}_s{scale}"
+                fss_metric_name = f"metric_fss_tstep{lead_idx}_thr{thr}_s{scale}"
                 score = spatialscores.fss(ens_mean, obs, thr, scale)
                 res[fss_metric_name] = score
 
             # Compute area under ROC
-            roc_metric_name = f"roc_area_T{int(leadtime)}_THR{thr}"
+            roc_metric_name = f"metric_roc_area_T{int(leadtime)}_THR{thr}"
             res[roc_metric_name] = self.plots.roc_curve(lead_idx, thr, area=True)
 
             results.append(res)
@@ -235,7 +235,7 @@ class PlotProcessor:
         ax2.set_ylabel(r"Skewness []", color="r")
         ax2.tick_params(axis="y", labelcolor="r")
 
-    def save_transform_comparison(self):
+    def save_transform_comparison(self, ext="png"):
 
         rainrate = self.ref_data
         metadata = self.metadata
@@ -274,12 +274,14 @@ class PlotProcessor:
         self._plot_distribution(data, labels, skw)
         plt.title("Data transforms")
         plt.tight_layout()
-        plt.savefig(self.plot_dir / "data_transform_comparison.svg", format="svg")
+        fname = f"data_transform_comparison.{ext}"
+        plt.savefig(self.plot_dir / fname, format=ext)
 
-    def save_last_precip_field(self):
+    def save_last_precip_field(self, ext="png"):
         """pysteps plot_precip_field wrapper for last observed timestep."""
         plot_precip_field(self.ref_data[-1, :, :], geodata=self.metadata)
-        plt.savefig(self.plot_dir / "last_obs_precip_field.svg", format="svg")
+        fname = f"last_obs_precip_field.{ext}"
+        plt.savefig(self.plot_dir / fname, format=ext)
 
     def save_det_nowcast_field(self, cfg, mname, fext="png"):
         """pysteps plot_precip_field wrapper for nowcast timesteps."""

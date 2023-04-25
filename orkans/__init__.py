@@ -27,27 +27,12 @@ TEST_CFG_DIR = ROOT_DIR / "orkans" / "tests" / "_test_configs"
 REGIONS = [
     {
         "id": 1,
-        "description": "Baltics",
-        "coords": (2.52e6, 3.114e6, -2.067e6, -1.37e6),
+        "description": "Estonia",
+        "coords": (2.6e6, 3.009e6, -1.719e6, -1.481e6),
     },
     {
         "id": 2,
-        "description": "Baltic sea Nordic",
-        "coords": (2.285e6, 2.947e6, -1.641e6, -1.044e6),
-    },
-    {
-        "id": 3,
-        "description": "Baltic sea Kurzeme",
+        "description": "Sweden's islands in the Baltic sea",
         "coords": (2.284e6, 2.622e6, -1.955e6, -1.664e6),
-    },
-    {
-        "id": 4,
-        "description": "N Poland",
-        "coords": (2.324e6, 2.767e6, -2.453e6, -1.993e6),
-    },
-    {
-        "id": 5,
-        "description": "Sweden, Finland",
-        "coords": (2.214e6, 2.826e6, -1.131e6, -7.368e5),
     },
 ]

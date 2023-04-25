@@ -96,7 +96,7 @@ if __name__ == "__main__":
 
     for result in results:
 
-        if not result:
+        if not result or "nwc_model" not in result:
             continue
 
         model_name = result.pop("nwc_model")

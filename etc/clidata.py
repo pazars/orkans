@@ -9,8 +9,11 @@ def clidata_query(
 ):
     # Path uz instantclient folderi.
     # Instantclient jāielādē no oracle mājaslapas
-    cx_Oracle.init_oracle_client(lib_dir=lib_dir_path)
-
+    try:
+        cx_Oracle.init_oracle_client(lib_dir=lib_dir_path)
+    except Exception:
+        pass
+        
     try:
         # Izveido savienojumu uz CLIDATA SQL,
         # formas šobrīd ir universālais user lasīšanai,

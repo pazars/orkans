@@ -5,8 +5,26 @@ general:
   # Date, time, and its format from which to begin forecast
   datetime_fmt: "%Y%m%d%H%M"
   datetime:
-    - 202206020045
-    - 202101061200
+    - 202301182300
+    - 202301190100
+    - 202301022300
+    - 202212222300
+    - 202201060100
+    - 202105181000
+    - 202105171500
+    - 202303030800
+    - 202205302300
+    - 202105230400
+    - 202106231300
+    - 202108171400
+    - 202207121500
+    - 202106250100
+    - 202108111400
+    - 202109122000
+    - 202109130500
+    - 202110151800
+    - 202210290900
+    - 202211080900
 
   # Number of forecast timesteps
   n_leadtimes: 1
@@ -14,16 +32,19 @@ general:
   # Clip domain to coordinates (local)
   # To use whole domain, first entry should be null
   domain_box:
-    - 2.284e6
-    - 2.622e6
-    - -1.955e6
-    - -1.664e6
+    # - 2.284e6  # REG2
+    # - 2.622e6
+    # - -1.955e6
+    # - -1.664e6
+    - 2.6e6 # REG1
+    - 3.009e6
+    - -1.719e6
+    - -1.481e6
 
   # Precipitation thresholds to use for ensemble metrics and plots
   thresholds:
     - 0.1
     - 0.5
-    - 1.0
 
   fss_scales:
     - 2
@@ -149,47 +170,45 @@ model:
 batch:
   steps:
     n_ens_members:
-      - 5
-      - 10
-      - 15
-      - 25
-      - 30
-      - 35
+      - 20
+      - 22
+      - 24
+      - 26
+      - 28
     n_cascade_levels:
       - 4
       - 6
       - 8
-      - 10
     bandpass_filter_method:
-      - "gaussian"
-      - "uniform"
+      - gaussian
+      - uniform
     noise_method:
-      - "parametric"
-      - "nonparametric"
-      - "ssft"
-      - "nested"
+      - parametric
+      - nonparametric
+      - ssft
+      - nested
     noise_stddev_adj:
-      - "auto"
-      - "fixed"
+      - auto
+      - fixed
       - null
-    ar_order:
-      - 1
-      - 2
+    # ar_order:
+    #   - 1
+    #   - 2
     vel_pert_method:
-      - "bps"
+      - bps
       - null
     conditional:
       - true
       - false
     mask_method:
-      - "obs"
-      - "sprog"
-      - "incremental"
+      - obs
+      - sprog
+      - incremental
     probmatching_method:
-      - "cdf"
-      - "mean"
+      - cdf
+      - mean
     domain:
-      - "spatial"
+      - spatial
       - spectral
   anvil:
     n_cascade_levels:
@@ -220,9 +239,49 @@ batch:
       - 52
   sseps:
     n_ens_members:
-      - 5
-      - 10
-      - 15
+      - 20
+      - 22
+      - 24
+      - 26
+      - 28
+    n_cascade_levels:
+      - 4
+      - 6
+      - 8
+    win_size:
+      - 128
+      - 256
+      - 512
+    overlap:
+      - 0.05
+      - 0.1
+      - 0.15
+      - 0.20
+    war_thr:
+      - 0.05
+      - 0.1
+      - 0.15
+    bandpass_filter_method:
+      - gaussian
+      - uniform
+    noise_method:
+      - parametric
+      - nonparametric
+      - ssft
+      - nested
+    # ar_order:
+    #   - 1
+    #   - 2
+    vel_pert_method:
+      - bps
+      - null
+    mask_method:
+      - obs
+      - sprog
+      - incremental
+    probmatching_method:
+      - cdf
+      - mean
 
 metrics:
   # Calculate Fraction Skill Score (FSS) by default for all threshold and scale values
