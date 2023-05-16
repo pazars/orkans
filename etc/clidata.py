@@ -13,7 +13,7 @@ def clidata_query(
         cx_Oracle.init_oracle_client(lib_dir=lib_dir_path)
     except Exception:
         pass
-        
+
     try:
         # Izveido savienojumu uz CLIDATA SQL,
         # formas šobrīd ir universālais user lasīšanai,
