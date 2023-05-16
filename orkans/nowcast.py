@@ -3,8 +3,13 @@ import time
 from loguru import logger
 from pysteps import nowcasts
 from pysteps.motion.lucaskanade import dense_lucaskanade
+from pysteps.io import exporters
 
-from orkans import PRECIP_RATIO_THR
+import sys, os
+
+sys.path.append(os.getcwd())
+
+from orkans import PRECIP_RATIO_THR, OUT_DIR
 from orkans import utils
 from orkans.postprocessing import PostProcessor
 from orkans.preprocessing import PreProcessor
@@ -132,6 +137,24 @@ def run(
 
     out_data |= model_kwargs
 
+    # Export results (experimental)
+    if cfg["general"]["export"]:
+        outdir = OUT_DIR / "netcdf"
+        if not outdir.exists():
+            outdir.mkdir()
+        haha = exporters.initialize_forecast_exporter_netcdf(
+            outpath=outdir.as_posix(),
+            outfnprefix="yeah",
+            startdate=metadata_nwc["timestamps"][0],
+            timestep=metadata_nwc["accutime"],
+            n_timesteps=n_leadtimes,
+            shape=nwc.shape[2:],
+            metadata=metadata_nwc,
+            n_ens_members=nwc.shape[0],
+        )
+
+        exporters.export_forecast_dataset(nwc, haha)
+
     # POST-PROCESSING
 
     # All nowcasts should be in mm/h
@@ -139,7 +162,7 @@ def run(
 
     post_proc = PostProcessor(run_id, rainrate_valid, nwc, metadata_nwc)
 
-    scores = post_proc.calc_scores(cfg, lead_idx=0)
+    scores = post_proc.calc_scores(cfg, lead_idx=-1)
     for score in scores:
         out_data |= score
 

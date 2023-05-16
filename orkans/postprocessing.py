@@ -135,7 +135,7 @@ class PlotProcessor:
         if lead_idx >= 0:
             return tstep * (lead_idx + 1)
         else:
-            return tstep * (self.data.shape[0] - lead_idx + 1)
+            return tstep * (self.data.shape[1] + lead_idx + 1)
 
     def rank_histogram(self, lead_idx: int, thr: float = 0.1, ext="png"):
         rankhist = verification.rankhist_init(self.data.shape[0], thr)

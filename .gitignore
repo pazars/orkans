@@ -18,3 +18,5 @@ nowcasts_*.csv
 
 # Pytest cache
 .pytest_cache
+
+telegram_bot
