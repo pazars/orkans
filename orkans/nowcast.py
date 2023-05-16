@@ -3,14 +3,16 @@ import time
 from loguru import logger
 from pysteps import nowcasts
 from pysteps.motion.lucaskanade import dense_lucaskanade
+from pysteps.io import exporters
 
-from orkans import PRECIP_RATIO_THR
+import sys, os
+
+sys.path.append(os.getcwd())
+
+from orkans import PRECIP_RATIO_THR, OUT_DIR
 from orkans import utils
 from orkans.postprocessing import PostProcessor
 from orkans.preprocessing import PreProcessor
-
-# TODO Run and batch run
-# TODO Check if run already exists
 
 
 @logger.catch
@@ -135,14 +137,34 @@ def run(
 
     out_data |= model_kwargs
 
+    # Export results (experimental)
+    if cfg["general"]["export"]:
+        outdir = OUT_DIR / "netcdf"
+        if not outdir.exists():
+            outdir.mkdir()
+        haha = exporters.initialize_forecast_exporter_netcdf(
+            outpath=outdir.as_posix(),
+            outfnprefix="yeah",
+            startdate=metadata_nwc["timestamps"][0],
+            timestep=metadata_nwc["accutime"],
+            n_timesteps=n_leadtimes,
+            shape=nwc.shape[2:],
+            metadata=metadata_nwc,
+            n_ens_members=nwc.shape[0],
+        )
+
+        exporters.export_forecast_dataset(nwc, haha)
+
     # POST-PROCESSING
 
     # All nowcasts should be in mm/h
     # If a model uses different units as input, convert before moving on!
 
     post_proc = PostProcessor(run_id, rainrate_valid, nwc, metadata_nwc)
-    scores = post_proc.calc_scores(0.1, cfg, lead_idx=0)
-    out_data |= scores
+
+    scores = post_proc.calc_scores(cfg, lead_idx=-1)
+    for score in scores:
+        out_data |= score
 
     out_data["nwc_run_time"] = tend_nwc - tstart_nwc
 
@@ -154,8 +176,9 @@ def run(
     out_data["total_run_time"] = tend - tstart
 
     if not test:
-        post_proc.save_plots()
-        post_proc.save_results(model_name, out_data)
+        post_proc.save_plots(cfg, model_name)
+
+    out_data["nwc_model"] = model_name
 
     return out_data
 
@@ -166,6 +189,7 @@ if __name__ == "__main__":
     model_name = "steps"
 
     # Load configuration file
-    cfg = utils.load_config()
+    cfgs = utils.load_config()
 
-    run(model_name, cfg)
+    for cfg in cfgs:
+        run(model_name, cfg)
