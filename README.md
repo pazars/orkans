@@ -13,7 +13,7 @@ Assuming [Anaconda](https://www.anaconda.com/) or [miniconda](https://docs.conda
 
 1. Create an environment using a specific version of Python and the Jupyter kernel to run notebooks. As of writing, `pysteps` does not recommend newer versions of Python. Installing `ipykernel` like this ensures that the notebook kernel has the same Python version as well.
 
-``` conda create ENV_NAME python=3.10.9 ipykernel ```
+``` conda create -n ENV_NAME python=3.10.9 ipykernel ```
 
 2. Activate the environment
 
