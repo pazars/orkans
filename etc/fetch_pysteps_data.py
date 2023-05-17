@@ -7,10 +7,13 @@ PYSTEPSRC=$PYSTEPS_DATA_PATH/pystepsrc for pysteps to use that configuration fil
 """
 
 import os
+from pathlib import Path
 
 from pysteps.datasets import create_default_pystepsrc, download_pysteps_data
 
-tox_test_data_dir = os.environ["PYSTEPS_DATA_PATH"]
+# tox_test_data_dir = os.environ["PYSTEPS_DATA_PATH"]
+
+tox_test_data_dir = (Path.home() / "pysteps_data").resolve().as_posix()
 
 download_pysteps_data(tox_test_data_dir, force=True)
 
