@@ -1,0 +1,160 @@
+{
+    "silent_import": false,
+    "outputs": {
+        "path_outputs": "./"
+    },
+    "plot": {
+        "motion_plot": "quiver",
+        "colorscale": "pysteps"
+    },
+    "data_sources": {
+        "bom": {
+            "root_path": "C:\\Users\\davis.pazars\\pysteps_data\\radar\\bom",
+            "path_fmt": "prcp-cscn/2/%Y/%m/%d",
+            "fn_pattern": "2_%Y%m%d_%H%M00.prcp-cscn",
+            "fn_ext": "nc",
+            "importer": "bom_rf3",
+            "timestep": 6,
+            "importer_kwargs": {
+                "gzipped": true
+            }
+        },
+        "fmi": {
+            "root_path": "C:\\Users\\davis.pazars\\pysteps_data\\radar\\fmi\\pgm",
+            "path_fmt": "%Y%m%d",
+            "fn_pattern": "%Y%m%d%H%M_fmi.radar.composite.lowest_FIN_SUOMI1",
+            "fn_ext": "pgm.gz",
+            "importer": "fmi_pgm",
+            "timestep": 5,
+            "importer_kwargs": {
+                "gzipped": true
+            }
+        },
+        "fmi_geotiff": {
+            "root_path": "C:\\Users\\davis.pazars\\pysteps_data\\radar\\fmi\\geotiff",
+            "path_fmt": "%Y%m%d",
+            "fn_pattern": "%Y%m%d%H%M_FINUTM.tif",
+            "fn_ext": "tif",
+            "importer": "geotiff",
+            "timestep": 5,
+            "importer_kwargs": {}
+        },
+        "mch": {
+            "root_path": "C:\\Users\\davis.pazars\\pysteps_data\\radar\\mch",
+            "path_fmt": "%Y%m%d",
+            "fn_pattern": "AQC%y%j%H%M?_00005.801",
+            "fn_ext": "gif",
+            "importer": "mch_gif",
+            "timestep": 5,
+            "importer_kwargs": {
+                "product": "AQC",
+                "unit": "mm",
+                "accutime": 5
+            }
+        },
+        "mrms": {
+            "root_path": "C:\\Users\\davis.pazars\\pysteps_data\\mrms",
+            "path_fmt": "%Y/%m/%d",
+            "fn_pattern": "PrecipRate_00.00_%Y%m%d-%H%M%S",
+            "fn_ext": "grib2",
+            "importer": "mrms_grib",
+            "timestep": 2,
+            "importer_kwargs": {}
+        },
+        "opera": {
+            "root_path": "C:\\Users\\davis.pazars\\pysteps_data\\radar\\OPERA",
+            "path_fmt": "%Y%m%d",
+            "fn_pattern": "T_PAAH21_C_EUOC_%Y%m%d%H%M%S",
+            "fn_ext": "hdf",
+            "importer": "opera_hdf5",
+            "timestep": 15,
+            "importer_kwargs": {}
+        },
+        "opera_lvgmc": {
+            "root_path": "//fs01/Source_data/home/lb/opera",
+            "path_fmt": "",
+            "fn_pattern": "T_PAAH21_C_EUOC_%Y%m%d%H%M%S",
+            "fn_ext": "hdf",
+            "importer": "opera_hdf5",
+            "timestep": 15,
+            "importer_kwargs": {}
+        },
+        "opera_meteo_france": {
+            "root_path": "//fs01/Source_data/home/lb/OPERA_arch/RAINFALL_RATE",
+            "path_fmt": "%Y/%Y-%m-%d",
+            "fn_pattern": "ODC.RRT_%Y%m%d%H%M",
+            "fn_ext": "h5",
+            "importer": "opera_hdf5",
+            "timestep": 15,
+            "importer_kwargs": {}
+        },
+        "knmi": {
+            "root_path": "C:\\Users\\davis.pazars\\pysteps_data\\radar\\KNMI",
+            "path_fmt": "%Y/%m",
+            "fn_pattern": "RAD_NL25_RAP_5min_%Y%m%d%H%M",
+            "fn_ext": "h5",
+            "importer": "knmi_hdf5",
+            "timestep": 5,
+            "importer_kwargs": {
+                "accutime": 5,
+                "qty": "ACRR",
+                "pixelsize": 1000.0
+            }
+        },
+        "rmi": {
+            "root_path": "C:\\Users\\davis.pazars\\pysteps_data\\radar\\rmi\\radqpe",
+            "path_fmt": "%Y%m%d",
+            "fn_pattern": "%Y%m%d%H%M00.rad.best.comp.rate.qpe",
+            "fn_ext": "hdf",
+            "importer": "odim_hdf5",
+            "timestep": 5,
+            "importer_kwargs": {
+                "accutime": 5.0
+            }
+        },
+        "saf": {
+            "root_path": "C:\\Users\\davis.pazars\\pysteps_data\\saf",
+            "path_fmt": "%Y%m%d/CRR",
+            "fn_pattern": "S_NWC_CRR_MSG4_Europe-VISIR_%Y%m%dT%H%M00Z",
+            "fn_ext": "nc",
+            "importer": "saf_crri",
+            "timestep": 15,
+            "importer_kwargs": {
+                "gzipped": true
+            }
+        },
+        "bom_nwp": {
+            "root_path": "C:\\Users\\davis.pazars\\pysteps_data\\nwp\\bom",
+            "path_fmt": "%Y/%m/%d",
+            "fn_pattern": "%Y%m%d_%H00_regrid_short",
+            "fn_ext": "nc",
+            "importer": "bom_nwp",
+            "timestep": 10,
+            "importer_kwargs": {
+                "gzipped": true
+            }
+        },
+        "rmi_nwp": {
+            "root_path": "C:\\Users\\davis.pazars\\pysteps_data\\nwp\\rmi",
+            "path_fmt": "%Y/%m/%d",
+            "fn_pattern": "ao13_%Y%m%d%H_native_5min",
+            "fn_ext": "nc",
+            "importer": "rmi_nwp",
+            "timestep": 5,
+            "importer_kwargs": {
+                "gzipped": true
+            }
+        },
+        "knmi_nwp": {
+            "root_path": "C:\\Users\\davis.pazars\\pysteps_data\\nwp\\knmi",
+            "path_fmt": "%Y/%m/%d",
+            "fn_pattern": "%Y%m%d_%H00_Pforecast_Harmonie",
+            "fn_ext": "nc",
+            "importer": "knmi_nwp",
+            "timestep": 60,
+            "importer_kwargs": {
+                "gzipped": true
+            }
+        }
+    }
+}
