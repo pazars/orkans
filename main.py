@@ -36,7 +36,7 @@ if __name__ == "__main__":
         "--nproc",
         type=int,
         default="1",
-        help="Number or parallel processes used to run models",
+        help="Number of processes used to run models",
     )
 
     parser.add_argument(
