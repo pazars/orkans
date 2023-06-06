@@ -101,14 +101,17 @@ class PreProcessor:
         # Ratio of pixels with rain rate values
         # This compares with all pixels!
         info["precip_ratio"] = pratio
-
+        
         thresholds = [2, 5, 8]
         for thr in thresholds:
             # Ratio of precipitation pixels above certain threshold
             # This compares only with pixels with precipitation!
             pratio_thr = self.precipitation_ratio(thr)
             key_name = f"precip_above_{thr}mmh"
-            info[key_name] = pratio_thr / pratio
+            if pratio == 0:
+                info[key_name] = 0
+            else:
+                info[key_name] = pratio_thr / pratio
 
         return info
 

@@ -3,9 +3,11 @@ import itertools
 import time
 import os
 import pandas as pd
+import yaml
 
 from multiprocessing import Pool
 
+from pathlib import Path
 from loguru import logger
 from orkans import LOG_PATH, CFG_PATH, OUT_DIR
 from orkans import nowcast, utils
@@ -44,14 +46,47 @@ if __name__ == "__main__":
         action=argparse.BooleanOptionalAction,
         help="Run models in batch or single run mode",
     )
+    
+    parser.add_argument(
+        "-d",
+        "--datetime",
+        help="Radar image datetime. Format in configuration file (for production runs)",
+    )
 
+    tstart = time.perf_counter()
+    
     args = parser.parse_args()
+    
+    if args.datetime:
+        cfg = utils.load_production_config()
+        result = nowcast.run("steps", cfg, datetime_prod=args.datetime, production=True)
+        
+        # Output run results
+        fname = "nowcasts_steps_production.csv"
+        csv_out_path = OUT_DIR / fname
 
-    user_model_names = args.models
+        if csv_out_path.exists():
+            data = pd.read_csv(csv_out_path)
+        else:
+            data = pd.DataFrame()
 
-    if not user_model_names:
+        new_data = pd.DataFrame.from_dict([result])
+        
+        data = pd.concat([data, new_data])
+        data.to_csv(csv_out_path, index=False)
+
+        tend = time.perf_counter()
+        print(f"Runtime: {tend - tstart}")
+        
+        logger.info(f"Production run: finished nowcast for datetime {args.datetime}")
+        exit()
+            
+    # Data exploration run
+    if not args.models:
         logger.info("Nothing to solve. Exiting.")
         exit()
+
+    user_model_names = args.models
 
     if args.batch:
         nwc_args = []
@@ -69,7 +104,6 @@ if __name__ == "__main__":
         cfg = utils.load_config()
         nwc_args = itertools.product(user_model_names, cfg)
 
-    tstart = time.perf_counter()
     with Pool(processes=args.nproc) as pool:
         results = pool.starmap(nowcast.run, nwc_args)
 

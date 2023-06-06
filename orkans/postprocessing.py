@@ -68,7 +68,11 @@ class PostProcessor:
         pred = self.pred[:, lead_idx, :, :]
         obs = self.obs[lead_idx, :, :]
 
-        mean_metrics = cfg["metrics"]["ensemble"]["mean"]
+        try:
+            mean_metrics = cfg["metrics"]["ensemble"]["mean"]
+        except KeyError:
+            mean_metrics = []
+
         thrs = cfg["general"]["thresholds"]
         fss_scales = cfg["general"]["fss_scales"]
 

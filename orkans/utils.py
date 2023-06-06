@@ -11,6 +11,20 @@ from pysteps import io, rcparams
 from pysteps.utils import clip_domain, conversion
 
 
+def load_production_config() -> dict:
+    """Load production YAML configuration file.
+
+    Looks for file config-production.yaml in script directory.
+
+    Returns:
+        dict: Configuration file loaded as a dictionary object.
+    """
+
+    cfg_prod_path = Path("./config-production.yaml").resolve()
+    
+    with open(cfg_prod_path.as_posix()) as file:
+        return yaml.safe_load(file)
+
 def load_config(cfg_path: Path = None) -> dict:
     """Load YAML configuration file.
 
@@ -123,6 +137,66 @@ def load_rainrate_data(cfg: dict, n_vsteps: int) -> tuple[np.ndarray, dict]:
         timestep,
         num_prev_files=n_vsteps - 1,
         num_next_files=n_leadtimes,
+    )
+
+    # Read the data from the archive
+    importer = io.get_method(importer_name, "importer")
+    series_data = io.read_timeseries(filenames, importer, **importer_kwargs)
+    data, quality, metadata = series_data
+
+    # Data should already be in mm/h, but convert just in case it isn't
+    rainrate, metadata = conversion.to_rainrate(data, metadata)
+
+    # Fill missing values with no precipitation value
+    rainrate[~np.isfinite(rainrate)] = metadata["zerovalue"]
+
+    # Clip domain to a specific region
+    # If first entry is None, uses whole domain
+    domain_box = gen_cfg["domain_box"]
+    if domain_box[0]:
+        # List values parsed as strings, so need to convert back to floats
+        domain_box = [float(num) for num in domain_box]
+        rainrate, metadata = clip_domain(rainrate, metadata, domain_box)
+
+    return (rainrate, metadata)
+
+
+def load_rainrate_data_product(cfg: dict, n_vsteps: int, start_time: str) -> tuple[np.ndarray, dict]:
+    """Wrapper for pysteps data import.
+
+    Args:
+        cfg (dict): Configuration file as dictionary
+        n_vsteps (int): Number of timesteps for velocity field estimation
+        start_time (str): Last radar image datetime.
+
+    Returns:
+        tuple(np.ndarray, dict): Same (data, metadata) output as in pysteps.
+    """
+
+    gen_cfg = cfg["general"]
+
+    data_source = gen_cfg["data_source"]
+    start_fmt = str(gen_cfg["datetime_fmt"])
+    date = datetime.strptime(start_time, start_fmt)
+
+    # Load data source config
+    root_path = rcparams.data_sources[data_source]["root_path"]
+    path_fmt = rcparams.data_sources[data_source]["path_fmt"]
+    fn_pattern = rcparams.data_sources[data_source]["fn_pattern"]
+    fn_ext = rcparams.data_sources[data_source]["fn_ext"]
+    importer_name = rcparams.data_sources[data_source]["importer"]
+    importer_kwargs = rcparams.data_sources[data_source]["importer_kwargs"]
+    timestep = rcparams.data_sources[data_source]["timestep"]
+
+    # Find the radar files in the archive
+    filenames = io.find_by_date(
+        date,
+        root_path,
+        path_fmt,
+        fn_pattern,
+        fn_ext,
+        timestep,
+        num_prev_files=n_vsteps - 1,
     )
 
     # Read the data from the archive

@@ -1,0 +1,73 @@
+general:
+  # Production mode
+  production: true
+
+  # 'pystepsrc' file key where input file paths and formats can be found
+  data_source: "nwc_product_lvgmc"
+
+  # Datetime format of the input files
+  datetime_fmt: "%Y%m%d%H%M%S"
+
+  # Result export path
+  result_path: "/mnt/Smartmet/data/incoming/radar/Nowcasting"
+
+  # Result filename fmt
+  result_fname_fmt: "%Y%m%d%H%M%S"
+
+  # Number of forecast leadtimes. For Opera timestep is 15min
+  n_leadtimes: 8
+
+  # Forecast region
+  domain_box:
+    - 2.192e6 # Left
+    - 3.082e6 # Right
+    - -2.269e6 # Bottom
+    - -1.278e6 # Top
+
+  # Fraction Skill Score (FSS) threshold
+  thresholds:
+    - 0.1
+
+  # Fraction Skill Score (FSS) scale in km
+  fss_scales:
+    - 2
+
+# Model settings
+model:
+  steps:
+    manual:
+      # https://pysteps.readthedocs.io/en/latest/generated/pysteps.nowcasts.steps.forecast.html
+      n_ens_members: 24
+      n_cascade_levels: 6
+      precip_thr: null
+      kmperpixel: null
+      timestep: null
+      extrap_method: semilagrangian
+      decomp_method: fft
+      bandpass_filter_method: gaussian
+      noise_method: nonparametric
+      noise_stddev_adj: null
+      ar_order: 2
+      vel_pert_method: bps
+      conditional: false
+      probmatching_method: cdf
+      mask_method: incremental
+      seed: null
+      num_workers: 1
+      fft_method: numpy
+      domain: spatial
+      extrap_kwargs: null
+      filter_kwargs: null
+      noise_kwargs: null
+      vel_pert_kwargs: null
+      mask_kwargs: null
+      measure_time: false
+      callback: null
+      return_output: true
+    metadata:
+      # Model parameters that can (and should) be automatically read from the metadata
+      # Value in this list is the metadata key
+      # Overwrites default values in manual
+      precip_thr: threshold
+      kmperpixel: xpixelsize
+      timestep: accutime

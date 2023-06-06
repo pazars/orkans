@@ -1,25 +1,32 @@
 import time
+import numpy as np
+from datetime import datetime, timedelta
 
 from loguru import logger
 from pysteps import nowcasts
 from pysteps.motion.lucaskanade import dense_lucaskanade
 from pysteps.io import exporters
+from pysteps.postprocessing import ensemblestats
+from pathlib import Path
 
 import sys, os
 
 sys.path.append(os.getcwd())
 
 from orkans import PRECIP_RATIO_THR, OUT_DIR
-from orkans import utils
+# from orkans import utils
 from orkans.postprocessing import PostProcessor
 from orkans.preprocessing import PreProcessor
+from orkans import utils
 
 
 @logger.catch
 def run(
     model_name: str,
     cfg: dict,
+    datetime_prod: str = None,
     test: bool = False,
+    production: bool = False
 ):
 
     tstart = time.perf_counter()
@@ -32,9 +39,14 @@ def run(
     n_vsteps = utils.determine_velocity_step_count(model_name, cfg)
 
     # Load rain rate data
-    rainrate_no_transform, metadata_no_transform = utils.load_rainrate_data(
-        cfg, n_vsteps
+    if datetime_prod:
+        rainrate_no_transform, metadata_no_transform = utils.load_rainrate_data_product(
+        cfg, n_vsteps, datetime_prod
     )
+    else:
+        rainrate_no_transform, metadata_no_transform = utils.load_rainrate_data(
+            cfg, n_vsteps
+        )
 
     # PRE-PROCESSING
 
@@ -54,7 +66,7 @@ def run(
     ratio = prepro_data["precip_ratio"]
     out_data["precip_ratio"] = ratio
 
-    if ratio < PRECIP_RATIO_THR:
+    if not production and ratio < PRECIP_RATIO_THR:
         msg = f"Precipitation ratio below threshold ({ratio} < {PRECIP_RATIO_THR})."
         logger.warning(msg)
         logger.info("Run finished.")
@@ -136,48 +148,90 @@ def run(
     tend_nwc = time.perf_counter()
 
     out_data |= model_kwargs
+    
+    # Production runs always produce an export file
+    if cfg["general"]["production"]:
+        outdir = Path(cfg["general"]["result_path"])
+        if not outdir.exists():
+            outdir.mkdir()
+            
+        # Consider ensemble mean
+        exp_nwc = np.ndarray(shape=(nwc.shape[1:]))
+        for tstep in range(n_leadtimes):
+            exp_nwc[tstep] = ensemblestats.mean(nwc[:, tstep, :, :])
+        
+        out_fmt = cfg["general"]["datetime_fmt"]
+        last_radar_time = datetime.strptime(datetime_prod, out_fmt)
+        result_path = Path(cfg["general"]["result_path"])
+            
+        exporter = exporters.initialize_forecast_exporter_netcdf(
+            outpath=result_path.as_posix(),
+            outfnprefix=last_radar_time.strftime(format=out_fmt),
+            startdate=last_radar_time,
+            timestep=metadata_nwc["accutime"],
+            n_timesteps=n_leadtimes,
+            shape=exp_nwc.shape[1:],
+            metadata=metadata_nwc,
+        )
+
+        exporters.export_forecast_dataset(exp_nwc, exporter)
+        
+        exporters.close_forecast_files(exporter)
 
     # Export results (experimental)
-    if cfg["general"]["export"]:
+    elif cfg["general"]["export"]:
+        
         outdir = OUT_DIR / "netcdf"
         if not outdir.exists():
             outdir.mkdir()
-        haha = exporters.initialize_forecast_exporter_netcdf(
+            
+        if len(nwc.shape) == 4:
+            # Consider ensemble mean
+            exp_nwc = np.ndarray(shape=(nwc.shape[1:]))
+            for tstep in range(n_leadtimes):
+                exp_nwc[tstep] = ensemblestats.mean(nwc[:, tstep, :, :])
+            
+        else:
+            exp_nwc = nwc
+        
+        last_radar_time = datetime.strptime(str(cfg["general"]["datetime"]), "%Y%m%d%H%M")
+            
+        exporter = exporters.initialize_forecast_exporter_netcdf(
             outpath=outdir.as_posix(),
-            outfnprefix="yeah",
-            startdate=metadata_nwc["timestamps"][0],
+            outfnprefix=f"proj3_test_{last_radar_time.strftime(format='%Y%m%d%H%M')}",
+            startdate=last_radar_time,
             timestep=metadata_nwc["accutime"],
             n_timesteps=n_leadtimes,
-            shape=nwc.shape[2:],
+            shape=exp_nwc.shape[1:],
             metadata=metadata_nwc,
-            n_ens_members=nwc.shape[0],
         )
 
-        exporters.export_forecast_dataset(nwc, haha)
+        exporters.export_forecast_dataset(exp_nwc, exporter)
+        
+        exporters.close_forecast_files(exporter)
 
     # POST-PROCESSING
 
     # All nowcasts should be in mm/h
     # If a model uses different units as input, convert before moving on!
+    if not production:
+        post_proc = PostProcessor(run_id, rainrate_valid, nwc, metadata_nwc)
 
-    post_proc = PostProcessor(run_id, rainrate_valid, nwc, metadata_nwc)
-
-    scores = post_proc.calc_scores(cfg, lead_idx=-1)
-    for score in scores:
-        out_data |= score
-
-    out_data["nwc_run_time"] = tend_nwc - tstart_nwc
+        scores = post_proc.calc_scores(cfg, lead_idx=-1)
+        for score in scores:
+            out_data |= score
+            
+        if not test:
+            post_proc.save_plots(cfg, model_name)
 
     logger.info(f"Ran '{model_name}' model")
     logger.info(f"Model settings used: {str(model_kwargs)}")
     logger.info("Run finished.")
 
     tend = time.perf_counter()
+    
+    out_data["nwc_run_time"] = tend_nwc - tstart_nwc
     out_data["total_run_time"] = tend - tstart
-
-    if not test:
-        post_proc.save_plots(cfg, model_name)
-
     out_data["nwc_model"] = model_name
 
     return out_data
@@ -188,8 +242,16 @@ if __name__ == "__main__":
     # steps, sseps, anvil, linda
     model_name = "steps"
 
-    # Load configuration file
-    cfgs = utils.load_config()
+    # # Load configuration file
+    # cfgs = utils.load_config()
 
-    for cfg in cfgs:
-        run(model_name, cfg)
+    # for cfg in cfgs:
+    #     run(model_name, cfg)
+        
+    cfg = utils.load_production_config()
+    run(
+    model_name,
+    cfg,
+    "202301182300",
+    production=True
+)

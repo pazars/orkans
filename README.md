@@ -35,6 +35,16 @@ Assuming [Anaconda](https://www.anaconda.com/) or [miniconda](https://docs.conda
 
 ## How to use it?
 
+### Production runs
+
+Production runs are for performing nowcasts and exporting results for later use in SMARTMET.
+
+It does not import reference data for the nowcasted timesteps, so post-processing and metrics are not available.
+
+Production runs use a separate config file `config-production.yaml` and are executed from the command line specifying the last radar datetime as follows:
+
+```python main.py --datetime 20230209034500```
+
 ### Running a batch in parallel from Command Line (CL)
 
 The most simple way to run a nowcast is by running the `main.py` file from command line and passing the model name as an argument:

@@ -79,6 +79,15 @@
             "timestep": 15,
             "importer_kwargs": {}
         },
+        "nwc_product_lvgmc": {
+            "root_path": "//fs01/Source_data/home/lb/opera",
+            "path_fmt": "",
+            "fn_pattern": "T_PAAH21_C_EUOC_%Y%m%d%H%M%S",
+            "fn_ext": "hdf",
+            "importer": "opera_hdf5",
+            "timestep": 15,
+            "importer_kwargs": {}
+        },
         "knmi": {
             "root_path": "C:\\Users\\davis.pazars\\pysteps_data\\radar\\KNMI",
             "path_fmt": "%Y/%m",

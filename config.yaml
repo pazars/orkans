@@ -1,4 +1,6 @@
 general:
+  # Production mode
+  production: false
   # Data source settings in pystepsrc configuration file
   data_source: "opera_meteo_france"
 
@@ -28,7 +30,7 @@ general:
     # - 202211080900
 
   # Number of forecast timesteps
-  n_leadtimes: 1
+  n_leadtimes: 4
 
   # Clip domain to coordinates (local)
   # To use whole domain, first entry should be null
@@ -53,7 +55,7 @@ general:
     - 20
 
   # Export results to NetCDF format (./results/netcdf)
-  export: false
+  export: true
 
 model:
   # Default model optional parameter values (can be overwritten in code)
