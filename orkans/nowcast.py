@@ -11,10 +11,9 @@ from pathlib import Path
 
 import sys, os
 
-sys.path.append(os.getcwd())
+sys.path.append(Path(__file__).parent.absolute())
 
 from orkans import PRECIP_RATIO_THR, OUT_DIR
-# from orkans import utils
 from orkans.postprocessing import PostProcessor
 from orkans.preprocessing import PreProcessor
 from orkans import utils

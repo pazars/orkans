@@ -1,7 +1,10 @@
 # Log file path for loguru
 from pathlib import Path
 
-ROOT_DIR = Path(".")
+ROOT_DIR = (Path(__file__).parent.absolute() / '..').resolve()
+
+# Orkans dir
+ORKANS_SERVER_DIR = Path('/home/pkdadmin/products/nwp/dp/orkans')  
 
 # Configuration file path
 CFG_PATH = (ROOT_DIR / "config.yaml").resolve()

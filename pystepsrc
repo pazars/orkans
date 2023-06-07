@@ -80,7 +80,7 @@
             "importer_kwargs": {}
         },
         "nwc_product_lvgmc": {
-            "root_path": "//fs01/Source_data/home/lb/opera",
+            "root_path": "/mnt/Source_data/home/lb/opera",
             "path_fmt": "",
             "fn_pattern": "T_PAAH21_C_EUOC_%Y%m%d%H%M%S",
             "fn_ext": "hdf",

@@ -10,6 +10,8 @@ from loguru import logger
 from pysteps import io, rcparams
 from pysteps.utils import clip_domain, conversion
 
+from orkans import ORKANS_SERVER_DIR, ROOT_DIR
+
 
 def load_production_config() -> dict:
     """Load production YAML configuration file.
@@ -19,10 +21,9 @@ def load_production_config() -> dict:
     Returns:
         dict: Configuration file loaded as a dictionary object.
     """
-
-    cfg_prod_path = Path("./config-production.yaml").resolve()
     
-    with open(cfg_prod_path.as_posix()) as file:
+    orkans_cfg_on_server = ROOT_DIR /'config-production.yaml'    
+    with open(orkans_cfg_on_server.as_posix()) as file:
         return yaml.safe_load(file)
 
 def load_config(cfg_path: Path = None) -> dict:

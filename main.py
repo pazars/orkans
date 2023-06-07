@@ -2,6 +2,7 @@ import argparse
 import itertools
 import time
 import os
+import sys
 import pandas as pd
 import yaml
 
@@ -12,8 +13,9 @@ from loguru import logger
 from orkans import LOG_PATH, CFG_PATH, OUT_DIR
 from orkans import nowcast, utils
 
-
 if __name__ == "__main__":
+    
+    pass
 
     # TODO Fix logger for multiprocessing
     logger.add(
@@ -56,8 +58,9 @@ if __name__ == "__main__":
     tstart = time.perf_counter()
     
     args = parser.parse_args()
-    
+        
     if args.datetime:
+        
         cfg = utils.load_production_config()
         result = nowcast.run("steps", cfg, datetime_prod=args.datetime, production=True)
         
